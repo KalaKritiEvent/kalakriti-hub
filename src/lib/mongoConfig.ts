@@ -2,7 +2,7 @@
 import { MongoClient } from 'mongodb';
 
 // MongoDB connection string and database name
-// Replace with your actual MongoDB Atlas credentials
+// Using the database name from your MongoDB Atlas dashboard
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://kalakritievent64:<db_password>@cluster0.uvvzg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || "kalakritievent64";
 

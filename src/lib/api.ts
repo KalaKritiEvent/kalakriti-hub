@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { connectToDatabase, COLLECTIONS } from './mongoConfig';
 
@@ -25,21 +24,21 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}) {
   }
 }
 
-// MongoDB implementation note: In a real production environment,
-// you would create API endpoints that interact with MongoDB
-// and call those endpoints from these functions.
+// Implementation note: This file is set up to work with a backend API,
+// but for direct MongoDB connections from frontend, you'll need server functions
+// or a BaaS solution like Supabase, Firebase, etc.
 
 // Implement functions to handle API requests
 export const api = {
   // Authentication
   auth: {
+    // Login using MongoDB
     login: async (email: string, password: string) => {
       try {
         // In a real implementation, you would:
-        // 1. Call your backend API which would use MongoDB to verify credentials
-        // 2. The API would return a JWT token and user data
+        // 1. Call an API endpoint that connects to your MongoDB
+        // 2. That endpoint would verify credentials and return a JWT token
         
-        // For now, using the mock implementation
         const data = await fetchWithErrorHandling(`${API_BASE_URL}/auth/login`, {
           method: 'POST',
           headers: {
@@ -58,13 +57,13 @@ export const api = {
       }
     },
     
+    // Signup using MongoDB
     signup: async (userData: any) => {
       try {
         // In a real implementation, you would:
-        // 1. Call your backend API which would use MongoDB to create a user
-        // 2. The API would hash the password, store user data, and return a result
+        // 1. Call an API endpoint that connects to your MongoDB
+        // 2. That endpoint would hash the password, store user data, and return a result
         
-        // For now, using the mock implementation
         return fetchWithErrorHandling(`${API_BASE_URL}/auth/signup`, {
           method: 'POST',
           headers: {
@@ -93,7 +92,7 @@ export const api = {
     },
   },
   
-  // Events
+  // Events - using MongoDB
   events: {
     getAll: async () => {
       // In a real implementation, you would:
@@ -110,7 +109,7 @@ export const api = {
     },
   },
   
-  // Submissions
+  // Submissions - using MongoDB and S3
   submissions: {
     create: async (formData: FormData) => {
       // In a real implementation, you would:
