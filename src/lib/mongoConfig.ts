@@ -1,10 +1,10 @@
 
-// This is a configuration file for MongoDB connection
-// Replace placeholder values with your actual MongoDB Atlas credentials
+import { MongoClient } from 'mongodb';
 
-// For security, these values should be stored in environment variables
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority";
-const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || "kalakriti_hub";
+// MongoDB connection string and database name
+// Replace with your actual MongoDB Atlas credentials
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://kalakritievent64:<db_password>@cluster0.uvvzg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || "kalakritievent64";
 
 // MongoDB Collections
 const COLLECTIONS = {
@@ -15,43 +15,45 @@ const COLLECTIONS = {
   RESULTS: "results"
 };
 
-/*
- * Steps to set up MongoDB Atlas:
- * 
- * 1. Create a MongoDB Atlas account (https://www.mongodb.com/cloud/atlas)
- * 2. Create a new cluster (free tier is available)
- * 3. Set up a database user with password authentication
- * 4. Whitelist your IP address (or use 0.0.0.0/0 for development)
- * 5. Get your connection string from Atlas dashboard
- * 6. Replace the MONGODB_URI placeholder with your actual connection string
- * 7. Install the MongoDB driver: npm install mongodb
- * 8. Use the MongoDB client to connect to your database
- *
- * Example connection code:
- * 
- * import { MongoClient } from 'mongodb';
- * 
- * let cachedClient = null;
- * let cachedDb = null;
- * 
- * export async function connectToDatabase() {
- *   if (cachedClient && cachedDb) {
- *     return { client: cachedClient, db: cachedDb };
- *   }
- * 
- *   const client = await MongoClient.connect(MONGODB_URI, {
- *     useNewUrlParser: true,
- *     useUnifiedTopology: true,
- *   });
- * 
- *   const db = client.db(MONGODB_DB_NAME);
- * 
- *   cachedClient = client;
- *   cachedDb = db;
- * 
- *   return { client, db };
- * }
+// Cached connection
+let cachedClient: MongoClient | null = null;
+let cachedDb: any = null;
+
+/**
+ * Connect to MongoDB Atlas
+ * Reuses existing connection if available
  */
+export async function connectToDatabase() {
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
+  }
+
+  if (!MONGODB_URI) {
+    throw new Error('Please define the MONGODB_URI environment variable');
+  }
+
+  if (!MONGODB_DB_NAME) {
+    throw new Error('Please define the MONGODB_DB_NAME environment variable');
+  }
+
+  try {
+    // Connect to the MongoDB cluster
+    const client = await MongoClient.connect(MONGODB_URI);
+    
+    const db = client.db(MONGODB_DB_NAME);
+    
+    // Cache the database connection
+    cachedClient = client;
+    cachedDb = db;
+    
+    console.log('Connected successfully to MongoDB Atlas');
+    
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}
 
 // Sample User Schema
 /*
