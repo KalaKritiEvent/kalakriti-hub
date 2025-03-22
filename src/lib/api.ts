@@ -29,6 +29,10 @@ export const api = {
   // Authentication
   auth: {
     login: async (email: string, password: string) => {
+      // Implementation Note: This is a mock implementation.
+      // For production, connect this to your MongoDB authentication API.
+      
+      // Mock API call for demonstration
       const data = await fetchWithErrorHandling(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -44,6 +48,9 @@ export const api = {
     },
     
     signup: async (userData: any) => {
+      // Implementation Note: This is a mock implementation.
+      // For production, connect this to your MongoDB user creation API.
+      
       return fetchWithErrorHandling(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: {
@@ -82,6 +89,10 @@ export const api = {
   // Submissions
   submissions: {
     create: async (formData: FormData) => {
+      // Implementation Note: This is a mock implementation.
+      // For production, connect this to your MongoDB/S3 submission API.
+      // The files should be uploaded to S3 and the metadata stored in MongoDB.
+      
       const token = localStorage.getItem('kalakriti-token');
       
       return fetchWithErrorHandling(`${API_BASE_URL}/submissions`, {

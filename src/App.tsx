@@ -11,6 +11,10 @@ import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/SignUp";
 import DashboardPage from "./pages/dashboard/Index";
 import NotFound from "./pages/NotFound";
+import AboutUs from "./pages/AboutUs";
+import Events from "./pages/Events";
+import Contact from "./pages/Contact";
+import Results from "./pages/Results";
 import { useEffect } from "react";
 
 // Initialize Framer Motion
@@ -39,6 +43,10 @@ const App = () => {
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<SignUp />} />
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/about-us" element={<AboutUs />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/results" element={<Results />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
