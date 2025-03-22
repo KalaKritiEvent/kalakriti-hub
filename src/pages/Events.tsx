@@ -12,7 +12,7 @@ const events = [
     id: 1,
     title: 'Kalakriti Art Competition',
     description: 'Showcase your painting, sketching or digital art skills in India\'s premier art competition.',
-    image: '/images/art-event.jpg',
+    imageSrc: '/images/art-event.jpg',
     imageAlt: 'Art Competition',
     eventType: 'art',
     date: 'August 15 - September 30, 2023',
@@ -23,7 +23,7 @@ const events = [
     id: 2,
     title: 'Kalakriti Photography Contest',
     description: 'Capture moments that tell stories through your lens in this national photography competition.',
-    image: '/images/photography-event.jpg',
+    imageSrc: '/images/photography-event.jpg',
     imageAlt: 'Photography Contest',
     eventType: 'photography',
     date: 'September 1 - October 15, 2023',
@@ -34,7 +34,7 @@ const events = [
     id: 3,
     title: 'Kalakriti Mehndi Championship',
     description: 'Express your creativity through the traditional art of mehndi design.',
-    image: '/images/mehndi-event.jpg',
+    imageSrc: '/images/mehndi-event.jpg',
     imageAlt: 'Mehndi Championship',
     eventType: 'mehndi',
     date: 'July 20 - August 25, 2023',
@@ -45,7 +45,7 @@ const events = [
     id: 4,
     title: 'Kalakriti Rangoli Festival',
     description: 'Celebrate the vibrant art form of rangoli with your unique patterns and designs.',
-    image: '/images/rangoli-event.jpg',
+    imageSrc: '/images/rangoli-event.jpg',
     imageAlt: 'Rangoli Festival',
     eventType: 'rangoli',
     date: 'October 15 - November 20, 2023',
@@ -56,7 +56,7 @@ const events = [
     id: 5,
     title: 'Kalakriti Dance Competition',
     description: 'Showcase your dancing talent across various Indian classical and contemporary styles.',
-    image: '/images/dance-event.jpg',
+    imageSrc: '/images/dance-event.jpg',
     imageAlt: 'Dance Competition',
     eventType: 'dance',
     date: 'August 10 - September 25, 2023',
@@ -67,7 +67,7 @@ const events = [
     id: 6,
     title: 'Kalakriti Singing Contest',
     description: 'Let your voice shine in India\'s biggest vocal talent hunt across multiple genres.',
-    image: '/images/singing-event.jpg',
+    imageSrc: '/images/singing-event.jpg',
     imageAlt: 'Singing Contest',
     eventType: 'singing',
     date: 'September 5 - October 20, 2023',
@@ -99,7 +99,7 @@ const Events = () => {
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {events.map((event) => (
+            {events.map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -109,9 +109,9 @@ const Events = () => {
                 <EventCard
                   title={event.title}
                   description={event.description}
-                  image={event.image}
-                  imageAlt={event.imageAlt}
+                  imageSrc={event.imageSrc}
                   eventType={event.eventType}
+                  index={index}
                 />
                 
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg">
