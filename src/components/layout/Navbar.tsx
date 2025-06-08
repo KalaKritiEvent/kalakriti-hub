@@ -71,7 +71,7 @@ const Navbar = () => {
             className="flex items-center"
           >
             <span className="font-heading text-xl md:text-2xl font-bold text-kalakriti-primary">
-              Kalakriti<span className="text-kalakriti-secondary">Hub</span>
+              Kalakriti<span className="text-kalakriti-secondary">Events</span>
             </span>
           </Link>
 

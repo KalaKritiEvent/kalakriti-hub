@@ -121,7 +121,7 @@ const SignUp = () => {
                 <CardHeader className="text-center">
                   <CardTitle className="text-2xl font-heading">Create Your Account</CardTitle>
                   <CardDescription>
-                    Join Kalakriti Hub to participate in our events
+                    Join Kalakriti Events to participate in our competitions
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

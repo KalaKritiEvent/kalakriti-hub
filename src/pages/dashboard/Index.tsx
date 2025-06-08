@@ -5,9 +5,8 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import UserDashboard from '@/components/dashboard/UserDashboard';
 import { api } from '@/lib/api';
-import { Loader2, Info } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -76,33 +75,6 @@ const DashboardPage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <div className="flex-grow pt-20 bg-gray-50">
-        {/* Implementation Notes Alert - Remove in production */}
-        <div className="container mx-auto px-4 mb-6">
-          <Alert className="bg-blue-50 border-blue-200">
-            <Info className="h-5 w-5 text-blue-600" />
-            <AlertTitle className="text-blue-800">Implementation Notes</AlertTitle>
-            <AlertDescription className="text-blue-700 mt-1">
-              <p className="mb-2">
-                This is a demo implementation. To fully implement authentication and file storage:
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>
-                  <strong>MongoDB Authentication:</strong> Connect your app to MongoDB using MongoDB Atlas. 
-                  Set up user collections and JWT authentication middleware.
-                </li>
-                <li>
-                  <strong>Amazon S3 Integration:</strong> Configure AWS SDK with your credentials and 
-                  create a bucket for storing user uploads.
-                </li>
-                <li>
-                  <strong>Next Steps:</strong> Refer to the implementation guide in the README for 
-                  detailed integration steps.
-                </li>
-              </ul>
-            </AlertDescription>
-          </Alert>
-        </div>
-        
         <UserDashboard />
       </div>
       <Footer />

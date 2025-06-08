@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -82,7 +83,7 @@ const Login = () => {
                 <CardHeader className="text-center">
                   <CardTitle className="text-2xl font-heading">Welcome Back</CardTitle>
                   <CardDescription>
-                    Login to your Kalakriti Hub account
+                    Login to your Kalakriti Events account
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
