@@ -1,518 +1,270 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Calendar, Image, Mail, Phone, User as UserIcon, MapPin, Clock, FileText, Award } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { api } from '@/lib/api';
-import { formatDate } from '@/lib/utils';
+import { 
+  Trophy, 
+  Calendar, 
+  FileText, 
+  Download, 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin,
+  Image,
+  Award,
+  Clock
+} from 'lucide-react';
 
-interface UserProfile {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
-  contestantId: string;
-  createdAt: string;
-}
-
-interface Submission {
-  _id: string;
-  eventType: string;
-  title: string;
-  description: string;
-  fileUrls: string[];
-  paymentId: string;
-  orderId: string;
-  status: 'submitted' | 'under-review' | 'completed';
-  result?: {
-    rank?: number;
-    score?: number;
-    feedback?: string;
-  };
-  createdAt: string;
-}
-
-const UserDashboard: React.FC = () => {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+const UserDashboard = () => {
+  const [userData, setUserData] = useState<any>(null);
+  const [submissionData, setSubmissionData] = useState<any>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [profileData, submissionsData] = await Promise.all([
-          api.users.getProfile(),
-          api.submissions.getByUser()
-        ]);
-        
-        setProfile(profileData);
-        setSubmissions(submissionsData);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Load user data
+    const user = localStorage.getItem('kalakriti-user');
+    const submission = localStorage.getItem('kalakriti-submission');
     
-    fetchData();
+    if (user) {
+      setUserData(JSON.parse(user));
+    }
+    
+    if (submission) {
+      setSubmissionData(JSON.parse(submission));
+    }
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'submitted':
-        return 'bg-blue-100 text-blue-700';
-      case 'under-review':
-        return 'bg-amber-100 text-amber-700';
-      case 'completed':
-        return 'bg-green-100 text-green-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getEventTitle = (eventType: string) => {
-    const eventMap: Record<string, string> = {
-      'art': 'Kalakriti Art Event',
-      'photography': 'Kalakriti Photography Event',
-      'mehndi': 'Kalakriti Mehndi Event',
-      'rangoli': 'Kalakriti Rangoli Event',
-      'dance': 'Kalakriti Dance Event',
-      'singing': 'Kalakriti Singing Event'
+  const getEventName = (eventType: string) => {
+    const eventNames = {
+      art: 'Art Competition',
+      photography: 'Photography Contest',
+      mehndi: 'Mehndi Championship',
+      rangoli: 'Rangoli Festival',
+      dance: 'Dance Competition',
+      singing: 'Singing Contest'
     };
-    
-    return eventMap[eventType] || eventType;
+    return eventNames[eventType as keyof typeof eventNames] || eventType;
   };
 
-  if (loading) {
+  const getEventColor = (eventType: string) => {
+    const colors = {
+      art: 'from-red-500 to-pink-600',
+      photography: 'from-blue-500 to-cyan-600',
+      mehndi: 'from-orange-500 to-red-500',
+      rangoli: 'from-purple-500 to-pink-500',
+      dance: 'from-green-500 to-teal-600',
+      singing: 'from-indigo-500 to-purple-600'
+    };
+    return colors[eventType as keyof typeof colors] || 'from-gray-500 to-gray-600';
+  };
+
+  if (!userData) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
-            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
-          </div>
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+          <h1 className="text-2xl font-bold mb-4">Loading Dashboard...</h1>
         </div>
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="container mx-auto px-4 py-8"
-    >
-      <div className="mb-8">
-        <h2 className="font-heading text-3xl font-bold text-kalakriti-primary">Your Dashboard</h2>
-        <p className="text-gray-600">
-          Welcome back, {profile?.firstName || 'Artist'}! Manage your submissions and track your progress.
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Welcome to Your Dashboard</h1>
+          <p className="text-gray-600">
+            Contestant ID: <span className="font-mono font-bold text-blue-600">{userData.contestantId}</span>
+          </p>
+        </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-8">
-          <TabsTrigger value="overview" className="text-sm">
-            <Activity size={16} className="mr-2" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="submissions" className="text-sm">
-            <Image size={16} className="mr-2" />
-            My Submissions
-          </TabsTrigger>
-          <TabsTrigger value="profile" className="text-sm">
-            <UserIcon size={16} className="mr-2" />
-            Profile
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* Artist Stats */}
-            <Card className="md:col-span-8 bg-white shadow-smooth">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Profile Section */}
+          <div className="lg:col-span-1">
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Your Activity</CardTitle>
-                <CardDescription>
-                  Overview of your participation and results
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-sm text-gray-500">Total Submissions</p>
-                    <p className="text-3xl font-bold text-kalakriti-primary mt-1">{submissions.length}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-sm text-gray-500">Events Participated</p>
-                    <p className="text-3xl font-bold text-kalakriti-primary mt-1">
-                      {new Set(submissions.map(s => s.eventType)).size}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-sm text-gray-500">Results Received</p>
-                    <p className="text-3xl font-bold text-kalakriti-primary mt-1">
-                      {submissions.filter(s => s.status === 'completed').length}
-                    </p>
-                  </div>
-                </div>
-                
-                {submissions.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Recent Submissions</h4>
-                    <div className="space-y-3">
-                      {submissions.slice(0, 3).map((submission) => (
-                        <div key={submission._id} className="flex items-start p-3 bg-gray-50 rounded-lg">
-                          <div className="flex-shrink-0 mr-3">
-                            <div className="h-10 w-10 bg-kalakriti-blue-light rounded-full flex items-center justify-center">
-                              <Image size={18} className="text-kalakriti-secondary" />
-                            </div>
-                          </div>
-                          <div className="flex-grow">
-                            <div className="flex items-center justify-between">
-                              <h5 className="font-medium text-kalakriti-primary">{submission.title}</h5>
-                              <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(submission.status)}`}>
-                                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1).replace('-', ' ')}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">{getEventTitle(submission.eventType)}</p>
-                            <div className="flex items-center text-xs text-gray-500 mt-1">
-                              <Clock size={12} className="mr-1" />
-                              <span>{formatDate(submission.createdAt)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setActiveTab('submissions')}
-                  className="ml-auto"
-                >
-                  View All Submissions
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            {/* Profile Card */}
-            <Card className="md:col-span-4 bg-white shadow-smooth">
-              <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>
-                  Personal information and contestant details
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {profile && (
+                {submissionData ? (
                   <>
-                    <div className="flex flex-col items-center mb-6">
-                      <div className="h-20 w-20 bg-gradient-to-br from-kalakriti-secondary to-blue-400 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-3">
-                        {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
+                    <div className="text-center mb-6">
+                      <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3">
+                        {submissionData.firstName?.[0]}{submissionData.lastName?.[0]}
                       </div>
-                      <h3 className="font-medium">{profile.firstName} {profile.lastName}</h3>
-                      <p className="text-sm text-gray-600">Contestant ID: {profile.contestantId}</p>
+                      <h3 className="font-semibold text-lg">
+                        {submissionData.firstName} {submissionData.lastName}
+                      </h3>
                     </div>
                     
                     <div className="space-y-3">
-                      <div className="flex items-center text-sm">
-                        <Mail size={16} className="mr-3 text-gray-500" />
-                        <span>{profile.email}</span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="h-4 w-4 text-gray-400" />
+                        <span>{submissionData.email}</span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Phone size={16} className="mr-3 text-gray-500" />
-                        <span>{profile.phoneNumber}</span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <span>{submissionData.phone}</span>
                       </div>
-                      <div className="flex items-start text-sm">
-                        <MapPin size={16} className="mr-3 text-gray-500 mt-0.5" />
-                        <span>
-                          {profile.address}, {profile.city}, {profile.state} - {profile.pincode}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <Calendar size={16} className="mr-3 text-gray-500" />
-                        <span>Joined on {formatDate(profile.createdAt)}</span>
-                      </div>
+                      {submissionData.city && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="h-4 w-4 text-gray-400" />
+                          <span>{submissionData.city}, {submissionData.state}</span>
+                        </div>
+                      )}
                     </div>
                   </>
+                ) : (
+                  <div className="text-center text-gray-500">
+                    <User className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                    <p>Complete your submission to see profile details</p>
+                  </div>
                 )}
               </CardContent>
-              <CardFooter>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setActiveTab('profile')}
-                  className="w-full"
-                >
-                  Edit Profile
-                </Button>
-              </CardFooter>
             </Card>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="submissions" className="space-y-6">
-          <Card className="bg-white shadow-smooth">
-            <CardHeader>
-              <CardTitle>Your Submissions</CardTitle>
-              <CardDescription>
-                All your event submissions and their status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {submissions.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="h-16 w-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <Image size={24} className="text-gray-400" />
+
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Current Participation */}
+            {submissionData && (
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" />
+                    Current Participation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`bg-gradient-to-r ${getEventColor(submissionData.eventType)} p-6 rounded-lg text-white mb-4`}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-xl font-bold mb-1">
+                          Kalakriti {getEventName(submissionData.eventType)}
+                        </h3>
+                        <p className="text-white/80">Season 1 • 2025</p>
+                      </div>
+                      <Badge className="bg-white/20 text-white border-white/30">
+                        Submitted
+                      </Badge>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">No submissions yet</h3>
-                  <p className="text-gray-500 mb-4">You haven't submitted any entries for events yet.</p>
-                  <Button onClick={() => window.location.href = '/'}>
-                    Browse Events
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm">
+                          <strong>Artwork Title:</strong> {submissionData.artworkTitle || 'Not specified'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Image className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm">
+                          <strong>Files Submitted:</strong> {submissionData.numberOfArtworks}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm">
+                          <strong>Submitted:</strong> {new Date(submissionData.submittedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm">
+                          <strong>Status:</strong> Under Review
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {submissionData.artworkDescription && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm"><strong>Description:</strong></p>
+                      <p className="text-sm text-gray-600 mt-1">{submissionData.artworkDescription}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Quick Actions */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                    <Download className="h-6 w-6" />
+                    <span>Download Certificate</span>
+                    <span className="text-xs text-gray-500">Available after results</span>
+                  </Button>
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                    <Award className="h-6 w-6" />
+                    <span>View Results</span>
+                    <span className="text-xs text-gray-500">Coming soon</span>
                   </Button>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {submissions.map((submission) => (
-                    <motion.div 
-                      key={submission._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-gray-50 rounded-lg overflow-hidden"
-                    >
-                      <div className="p-4 sm:p-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-                          <div>
-                            <div className="flex items-center">
-                              <h3 className="text-lg font-medium text-kalakriti-primary mr-3">{submission.title}</h3>
-                              <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(submission.status)}`}>
-                                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1).replace('-', ' ')}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">{getEventTitle(submission.eventType)}</p>
-                          </div>
-                          <div className="mt-2 sm:mt-0 text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <Calendar size={14} className="mr-1" />
-                              <span>{formatDate(submission.createdAt)}</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <FileText size={14} className="mr-1" />
-                              Description
-                            </h4>
-                            <p className="text-sm text-gray-600">{submission.description}</p>
-                          </div>
-                          
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">Submission Details</h4>
-                            <div className="space-y-2">
-                              <div className="flex items-center text-sm text-gray-600">
-                                <span className="w-24 flex-shrink-0">Order ID:</span>
-                                <span className="font-mono">{submission.orderId}</span>
-                              </div>
-                              <div className="flex items-center text-sm text-gray-600">
-                                <span className="w-24 flex-shrink-0">Payment ID:</span>
-                                <span className="font-mono">{submission.paymentId}</span>
-                              </div>
-                              <div className="flex items-center text-sm text-gray-600">
-                                <span className="w-24 flex-shrink-0">Files:</span>
-                                <span>{submission.fileUrls.length} file(s)</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Preview Images/Files */}
-                        {submission.fileUrls.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">Your Submission</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                              {submission.fileUrls.map((url, index) => (
-                                <a 
-                                  key={index} 
-                                  href={url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="block rounded-md overflow-hidden border border-gray-200 hover:border-kalakriti-secondary transition-colors h-24"
-                                >
-                                  {url.match(/\.(jpeg|jpg|gif|png)$/i) ? (
-                                    <img 
-                                      src={url} 
-                                      alt={`Submission ${index + 1}`} 
-                                      className="w-full h-full object-cover" 
-                                    />
-                                  ) : url.match(/\.(mp4|mov|avi)$/i) ? (
-                                    <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white">
-                                      <span className="text-xs">Video</span>
-                                    </div>
-                                  ) : (
-                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                      <span className="text-xs text-gray-500">File {index + 1}</span>
-                                    </div>
-                                  )}
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Results if available */}
-                        {submission.status === 'completed' && submission.result && (
-                          <div className="mt-6 p-4 bg-kalakriti-blue-light rounded-md">
-                            <h4 className="font-medium text-kalakriti-primary flex items-center mb-3">
-                              <Award size={16} className="mr-2" />
-                              Results
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                              {submission.result.rank && (
-                                <div className="bg-white rounded-md p-3 text-center">
-                                  <p className="text-sm text-gray-500">Rank</p>
-                                  <p className="text-2xl font-bold text-kalakriti-primary">
-                                    {submission.result.rank}
-                                    <span className="text-sm font-normal text-gray-500 ml-1">
-                                      {submission.result.rank === 1 ? 'st' : 
-                                       submission.result.rank === 2 ? 'nd' : 
-                                       submission.result.rank === 3 ? 'rd' : 'th'}
-                                    </span>
-                                  </p>
-                                </div>
-                              )}
-                              
-                              {submission.result.score && (
-                                <div className="bg-white rounded-md p-3 text-center">
-                                  <p className="text-sm text-gray-500">Score</p>
-                                  <p className="text-2xl font-bold text-kalakriti-primary">
-                                    {submission.result.score}
-                                    <span className="text-sm font-normal text-gray-500 ml-1">/100</span>
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {submission.result.feedback && (
-                              <div className="mt-3 p-3 bg-white rounded-md">
-                                <p className="text-sm text-gray-500 mb-1">Feedback</p>
-                                <p className="text-gray-700">{submission.result.feedback}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="profile" className="space-y-6">
-          <Card className="bg-white shadow-smooth">
-            <CardHeader>
-              <CardTitle>Your Profile</CardTitle>
-              <CardDescription>
-                View and update your personal information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {profile ? (
-                <div>
-                  <div className="flex flex-col items-center mb-8">
-                    <div className="h-24 w-24 bg-gradient-to-br from-kalakriti-secondary to-blue-400 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4">
-                      {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
-                    </div>
-                    <h3 className="text-xl font-semibold">{profile.firstName} {profile.lastName}</h3>
-                    <p className="text-gray-600 mt-1">Contestant ID: {profile.contestantId}</p>
-                    <p className="text-sm text-gray-500 mt-1">Joined on {formatDate(profile.createdAt)}</p>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center">
-                        <UserIcon size={16} className="mr-2" />
-                        Personal Information
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">First Name</p>
-                          <p className="font-medium">{profile.firstName}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Last Name</p>
-                          <p className="font-medium">{profile.lastName}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Email</p>
-                          <p className="font-medium">{profile.email}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Phone</p>
-                          <p className="font-medium">{profile.phoneNumber}</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center">
-                        <MapPin size={16} className="mr-2" />
-                        Address
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="sm:col-span-2">
-                          <p className="text-sm text-gray-500">Street Address</p>
-                          <p className="font-medium">{profile.address}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">City</p>
-                          <p className="font-medium">{profile.city}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">State</p>
-                          <p className="font-medium">{profile.state}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Pincode</p>
-                          <p className="font-medium">{profile.pincode}</p>
-                        </div>
-                      </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Account created successfully</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(userData.signedUpAt).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                   
-                  <div className="mt-8">
-                    <Button className="w-full sm:w-auto">
-                      Edit Profile
-                    </Button>
+                  {submissionData && (
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Artwork submitted for review</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(submissionData.submittedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Payment completed</p>
+                      <p className="text-xs text-gray-500">Registration fee processed</p>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p>No profile information available.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </motion.div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

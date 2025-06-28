@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import EventDetails from "./pages/events/[eventType]";
 import PaymentPage from "./pages/payment/[eventType]";
+import SubmissionForm from "./pages/submission/[eventType]";
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/SignUp";
 import DashboardPage from "./pages/dashboard/Index";
@@ -40,6 +40,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/events/:eventType" element={<EventDetails />} />
               <Route path="/payment/:eventType" element={<PaymentPage />} />
+              <Route path="/submission/:eventType" element={<SubmissionForm />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<SignUp />} />
               <Route path="/dashboard" element={<DashboardPage />} />
