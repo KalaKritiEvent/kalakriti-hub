@@ -44,3 +44,7 @@ export const eventTypes = [
     image: '/images/singing-event.jpg'
   }
 ];
+
+export const getEventDetails = (eventType: string) => {
+  return eventTypes.find(event => event.type === eventType);
+};
