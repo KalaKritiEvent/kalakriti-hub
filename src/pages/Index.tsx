@@ -30,9 +30,9 @@ const Index = () => {
           <span className="bg-kalakriti-blue-light text-kalakriti-secondary px-4 py-1 rounded-full text-sm font-medium inline-block mb-4">
             Our Competitions
           </span>
-          <h2 className="h2 mb-4">Explore Our Art Events</h2>
+          <h2 className="h2 mb-4">Explore Our Art Competitions</h2>
           <p className="text-gray-600 max-w-3xl mx-auto">
-            Discover a variety of artistic competitions designed to showcase your talent and creativity. 
+            Kalakriti Events Organizes Competitions designed to showcase your talent and creativity. 
             From traditional art forms to modern expressions, find your perfect platform.
           </p>
         </motion.div>
@@ -67,10 +67,10 @@ const Index = () => {
               </span>
               <h2 className="h2 mb-6">Celebrating Art & Creativity Since 2018</h2>
               <p className="text-gray-600 mb-6">
-                Kalakriti Hub was founded with a vision to create a platform where artists of all backgrounds and skill levels can showcase their talent, receive recognition, and connect with a community of like-minded creators.
+                Kalakriti Events Organizes Competitions with a vision to create a platform where artists of all backgrounds and skill levels can showcase their talent, receive recognition, and connect with a community of like-minded creators.
               </p>
               <p className="text-gray-600 mb-6">
-                Our events span multiple artistic disciplines, from visual arts to performance, providing opportunities for creative expression in various forms. We believe in the power of art to inspire, transform, and unite.
+                Our competitions span multiple artistic disciplines, from visual arts to performance, providing opportunities for creative expression in various forms. We believe in the power of art to inspire, transform, and unite.
               </p>
               <div className="flex flex-wrap gap-6 mt-8">
                 <div className="text-center">
@@ -87,7 +87,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="mt-8">
-                <Link to="/about">
+                <Link to="/about-us">
                   <Button variant="outline" className="group">
                     Learn More About Us
                     <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

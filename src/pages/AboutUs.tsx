@@ -21,7 +21,7 @@ const AboutUs = () => {
             <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-smooth p-6 md:p-8 mb-10">
               <div className="prose prose-lg max-w-none">
                 <p className="mb-6">
-                  Kalakriti Hub is a premier platform for celebrating Indian art and cultural expressions. Our mission is to discover, showcase and nurture artistic talent across various traditional and contemporary art forms.
+                  Kalakriti Events Organizes Competitions is a premier platform for celebrating Indian art and cultural expressions. Our mission is to discover, showcase and nurture artistic talent across various traditional and contemporary art forms through well-structured competitions.
                 </p>
                 
                 <h2 className="text-2xl font-semibold font-heading text-kalakriti-primary mb-4">Our Vision</h2>
@@ -31,7 +31,7 @@ const AboutUs = () => {
                 
                 <h2 className="text-2xl font-semibold font-heading text-kalakriti-primary mb-4">Our Story</h2>
                 <p className="mb-6">
-                  Founded in 2022, Kalakriti Hub began as a small community initiative to bring together local artists. What started as a modest exhibition has now blossomed into a nationwide platform that hosts multiple events throughout the year, covering various art forms from painting and photography to dance and music.
+                  Founded in 2018, Kalakriti Events Organizes Competitions began as a small community initiative to bring together local artists. What started as a modest competition has now blossomed into a nationwide platform that hosts multiple competitions throughout the year, covering various art forms from painting and photography to dance and music.
                 </p>
                 
                 <h2 className="text-2xl font-semibold font-heading text-kalakriti-primary mb-4">What We Offer</h2>

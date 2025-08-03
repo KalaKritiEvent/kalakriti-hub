@@ -44,7 +44,7 @@ const HeroSection = () => {
             >
               Kalakriti
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-kalakriti-accent to-pink-400">
-                Events
+                Competitions
               </span>
             </motion.h1>
             
@@ -70,7 +70,7 @@ const HeroSection = () => {
                 asChild
               >
                 <a href="#events-section">
-                  Explore Events <ArrowRight className="ml-2 h-5 w-5" />
+                  Explore Competitions <ArrowRight className="ml-2 h-5 w-5" />
                 </a>
               </Button>
               <Button 
@@ -98,8 +98,8 @@ const HeroSection = () => {
                 <div className="text-sm text-gray-300">Participants</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-kalakriti-accent mb-1">6</div>
-                <div className="text-sm text-gray-300">Event Categories</div>
+                 <div className="text-2xl md:text-3xl font-bold text-kalakriti-accent mb-1">6</div>
+                <div className="text-sm text-gray-300">Competition Categories</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-kalakriti-accent mb-1">50L+</div>
