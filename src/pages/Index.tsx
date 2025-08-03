@@ -10,6 +10,15 @@ import HeroSection from '@/components/home/HeroSection';
 import EventCard from '@/components/home/EventCard';
 import { eventTypes } from '@/lib/utils';
 
+// Import images
+import aboutKalakriti from '@/assets/about-kalakriti.jpg';
+import aboutKalakritiSmall from '@/assets/about-kalakriti-small.jpg';
+import testimonial1 from '@/assets/testimonial-1.jpg';
+import testimonial2 from '@/assets/testimonial-2.jpg';
+import testimonial3 from '@/assets/testimonial-3.jpg';
+import testimonial4 from '@/assets/testimonial-4.jpg';
+import testimonial5 from '@/assets/testimonial-5.jpg';
+
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -106,14 +115,14 @@ const Index = () => {
               <div className="relative">
                 <div className="rounded-lg overflow-hidden shadow-smooth">
                   <img 
-                    src="/images/about-kalakriti.jpg" 
+                    src={aboutKalakriti} 
                     alt="Kalakriti Event" 
                     className="w-full h-auto"
                   />
                 </div>
                 <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg shadow-smooth hidden md:block">
                   <img 
-                    src="/images/about-kalakriti-small.jpg" 
+                    src={aboutKalakritiSmall} 
                     alt="Art Exhibition" 
                     className="w-24 h-24 object-cover rounded"
                   />
@@ -148,49 +157,61 @@ const Index = () => {
           </p>
         </motion.div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {[
             {
               name: "Priya Sharma",
               role: "Visual Artist",
-              avatar: "/images/testimonial-1.jpg",
-              quote: "Participating in Kalakriti's art event gave me the platform I needed to showcase my work. The feedback from judges was invaluable for my growth as an artist."
+              avatar: testimonial1,
+              quote: "Participating in Kalakriti's art competition gave me the platform I needed to showcase my work. The feedback from judges was invaluable for my growth as an artist."
             },
             {
               name: "Rahul Verma",
               role: "Photographer",
-              avatar: "/images/testimonial-2.jpg",
-              quote: "The photography competition at Kalakriti Hub was exceptionally well-organized. The exposure I received helped me connect with other creators and even led to professional opportunities."
+              avatar: testimonial2,
+              quote: "The photography competition at Kalakriti was exceptionally well-organized. The exposure I received helped me connect with other creators and even led to professional opportunities."
             },
             {
               name: "Neha Patel",
-              role: "Dancer",
-              avatar: "/images/testimonial-3.jpg",
-              quote: "As a classical dancer, finding the right platform to perform is crucial. Kalakriti Dance Event provided not just a stage, but also recognition and appreciation for traditional art forms."
+              role: "Classical Dancer",
+              avatar: testimonial3,
+              quote: "As a classical dancer, finding the right platform to perform is crucial. Kalakriti Dance Competition provided not just a stage, but also recognition and appreciation for traditional art forms."
+            },
+            {
+              name: "Arjun Singh",
+              role: "Singer",
+              avatar: testimonial4,
+              quote: "The singing competition helped me gain confidence and connect with music lovers. The professional judging panel provided constructive feedback that improved my vocal skills significantly."
+            },
+            {
+              name: "Meera Gupta",
+              role: "Mehndi Artist",
+              avatar: testimonial5,
+              quote: "Winning the mehndi championship at Kalakriti was a dream come true. The competition celebrated traditional art while encouraging innovation, which is exactly what I was looking for."
             }
-          ].map((testimonial, index) => (
+          ].slice(0, window.innerWidth < 768 ? 3 : 5).map((testimonial, index) => (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
               key={testimonial.name}
-              className="bg-white p-6 rounded-xl shadow-smooth"
+              className="bg-white p-4 md:p-6 rounded-xl shadow-smooth hover:shadow-lg transition-shadow duration-300"
             >
               <div className="flex items-center mb-4">
-                <div className="mr-4">
+                <div className="mr-3 md:mr-4">
                   <img 
                     src={testimonial.avatar} 
                     alt={testimonial.name} 
-                    className="h-12 w-12 rounded-full object-cover"
+                    className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
                   />
                 </div>
                 <div>
-                  <h3 className="font-medium text-kalakriti-primary">{testimonial.name}</h3>
-                  <p className="text-sm text-gray-600">{testimonial.role}</p>
+                  <h3 className="font-medium text-sm md:text-base text-kalakriti-primary">{testimonial.name}</h3>
+                  <p className="text-xs md:text-sm text-gray-600">{testimonial.role}</p>
                 </div>
               </div>
-              <p className="text-gray-600 italic">"{testimonial.quote}"</p>
+              <p className="text-gray-600 italic text-sm md:text-base">"{testimonial.quote}"</p>
             </motion.div>
           ))}
         </div>
