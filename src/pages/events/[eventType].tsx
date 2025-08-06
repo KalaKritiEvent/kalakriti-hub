@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import ParticipantRegistration from '@/components/forms/ParticipantRegistration';
 import { Calendar, Users, Trophy, Star, ArrowRight, Heart, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -118,6 +119,7 @@ const eventDetails = {
 
 const EventDetails = () => {
   const { eventType } = useParams();
+  const [showRegistration, setShowRegistration] = useState(false);
   const navigate = useNavigate();
   const [selectedArtworks, setSelectedArtworks] = useState(1);
   
@@ -299,9 +301,9 @@ const EventDetails = () => {
                 <Button 
                   className={`w-full bg-gradient-to-r ${event.theme} hover:opacity-90 text-white`}
                   size="lg"
-                  onClick={handleParticipateNow}
+                  onClick={() => setShowRegistration(true)}
                 >
-                  Proceed to Payment
+                  Register & Participate Now
                 </Button>
                 
                 <div className="mt-4 text-center text-xs md:text-sm text-gray-500">
@@ -315,6 +317,15 @@ const EventDetails = () => {
       </section>
       
       <Footer />
+      
+      {showRegistration && (
+        <ParticipantRegistration
+          eventType={eventType!}
+          eventName={event.title}
+          eventColor={event.theme}
+          onClose={() => setShowRegistration(false)}
+        />
+      )}
     </div>
   );
 };
