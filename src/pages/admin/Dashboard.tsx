@@ -22,6 +22,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ResultUpload from '@/components/admin/ResultUpload';
 
 interface Participant {
   participantId: string;
@@ -348,113 +349,11 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Publish New Result</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="participantId">Participant ID</Label>
-                    <Input
-                      id="participantId"
-                      value={newResult.participantId}
-                      onChange={(e) => setNewResult(prev => ({ ...prev, participantId: e.target.value }))}
-                      placeholder="Enter participant ID"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="eventType">Competition</Label>
-                    <select
-                      id="eventType"
-                      value={newResult.eventType}
-                      onChange={(e) => setNewResult(prev => ({ ...prev, eventType: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="">Select Competition</option>
-                      {eventTypes.map(type => (
-                        <option key={type} value={type}>
-                          {eventNames[type as keyof typeof eventNames]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="position">Position</Label>
-                      <Input
-                        id="position"
-                        type="number"
-                        value={newResult.position}
-                        onChange={(e) => setNewResult(prev => ({ ...prev, position: parseInt(e.target.value) }))}
-                        placeholder="1"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="score">Score</Label>
-                      <Input
-                        id="score"
-                        type="number"
-                        value={newResult.score}
-                        onChange={(e) => setNewResult(prev => ({ ...prev, score: parseFloat(e.target.value) }))}
-                        placeholder="95.5"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="remarks">Remarks</Label>
-                    <Textarea
-                      id="remarks"
-                      value={newResult.remarks}
-                      onChange={(e) => setNewResult(prev => ({ ...prev, remarks: e.target.value }))}
-                      placeholder="Enter judges' remarks..."
-                    />
-                  </div>
-                  
-                  <Button onClick={handlePublishResult} className="w-full">
-                    <Award className="h-4 w-4 mr-2" />
-                    Publish Result
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Published Results</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {results.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">No results published yet</p>
-                    ) : (
-                      results.map((result, index) => (
-                        <div key={index} className="p-4 border rounded-lg">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium">{result.participantId}</p>
-                              <p className="text-sm text-gray-600">
-                                {eventNames[result.eventType as keyof typeof eventNames]}
-                              </p>
-                            </div>
-                            <Badge variant={result.position <= 3 ? 'default' : 'secondary'}>
-                              Position {result.position}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600">Score: {result.score}</p>
-                          {result.remarks && (
-                            <p className="text-sm text-gray-500 mt-2">{result.remarks}</p>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <ResultUpload 
+              eventTypes={eventTypes}
+              eventNames={eventNames}
+              participants={participants}
+            />
           </TabsContent>
 
           <TabsContent value="certificates" className="space-y-6">

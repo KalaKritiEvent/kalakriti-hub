@@ -67,15 +67,17 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				kalakriti: {
-					primary: '#2A3342',
-					secondary: '#4F6BFF',
-					accent: '#FFB800',
-					light: '#F7F9FA',
-					dark: '#1A202C',
-					'blue-light': '#E9EFFF',
-					'gold-light': '#FFF6E0',
-				}
+				"kalakriti-primary": "hsl(var(--kalakriti-primary))",
+				"kalakriti-secondary": "hsl(var(--kalakriti-secondary))",
+				"kalakriti-accent": "hsl(var(--kalakriti-accent))",
+				"kalakriti-success": "hsl(var(--kalakriti-success))",
+				"kalakriti-warning": "hsl(var(--kalakriti-warning))",
+				"kalakriti-error": "hsl(var(--kalakriti-error))",
+				"kalakriti-dark": "hsl(var(--kalakriti-dark))",
+				"kalakriti-light": "hsl(var(--kalakriti-light))",
+				"kalakriti-blue-light": "hsl(var(--kalakriti-blue-light))",
+				"kalakriti-gold-light": "hsl(var(--kalakriti-gold-light))",
+				"kalakriti-purple-light": "hsl(var(--kalakriti-purple-light))",
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -132,10 +134,10 @@ export default {
 				'pulse-light': 'pulse-light 2s ease-in-out infinite'
 			},
 			boxShadow: {
-				'smooth': '0 4px 20px rgba(0, 0, 0, 0.05)',
-				'smooth-lg': '0 10px 30px rgba(0, 0, 0, 0.08)',
+				'smooth': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+				'smooth-lg': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
 				'inner-light': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
-				'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)'
+				'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)'
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

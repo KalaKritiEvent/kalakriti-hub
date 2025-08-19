@@ -14,7 +14,7 @@ import NotFound from "./pages/NotFound";
 import AboutUs from "./pages/AboutUs";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
-import Results from "./pages/Results";
+import NewResults from "./pages/NewResults";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import { useEffect } from "react";
@@ -49,7 +49,7 @@ const App = () => {
               <Route path="/about-us" element={<AboutUs />} />
               <Route path="/events" element={<Events />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/results" element={<Results />} />
+              <Route path="/results" element={<NewResults />} />
               <Route path="/admin" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
