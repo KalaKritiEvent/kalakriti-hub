@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Trophy, Medal, Award, Star, Calendar, Download, Loader2, Crown, Sparkles } from 'lucide-react';
+import { Search, Trophy, Medal, Award, Star, Calendar, Download, Loader2, Crown, Sparkles, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { eventTypes } from '@/lib/utils';
+import jsPDF from 'jspdf';
 
 interface ResultEntry {
   participantId: string;
@@ -42,7 +43,12 @@ const NewResults = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const seasons = ['2024', '2023', '2022', '2021'];
+  // Get available seasons from published results only
+  const getAvailableSeasons = () => {
+    const publishedSeasons = Array.from(new Set(results.map(r => r.season))).sort((a, b) => b.localeCompare(a));
+    return publishedSeasons;
+  };
+
   const ageCategoryNames = {
     adult: 'Adult (16yr-80yr)',
     children: 'Children (7yr-15yr)',
@@ -51,8 +57,16 @@ const NewResults = () => {
 
   useEffect(() => {
     // Load published results from localStorage
-    const publishedResults = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
+    const publishedResults: EventResult[] = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
     setResults(publishedResults);
+    
+    // Set the most recent available season as default
+    if (publishedResults.length > 0) {
+      const availableSeasons = Array.from(new Set(publishedResults.map(r => r.season))).sort((a, b) => b.localeCompare(a));
+      if (availableSeasons.length > 0) {
+        setSelectedSeason(availableSeasons[0]);
+      }
+    }
   }, []);
 
   const getCurrentResult = () => {
@@ -145,14 +159,64 @@ const NewResults = () => {
     }
   };
 
-  const downloadCertificate = (participantId: string) => {
-    toast.success(`Certificate download initiated for ${participantId}`);
+  const generateCertificate = (participant: any) => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Certificate background
+    doc.setFillColor(268, 83, 57); // Kalakriti primary color (HSL converted to RGB)
+    doc.rect(0, 0, 297, 210, 'F');
+    
+    // White content area
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(20, 20, 257, 170, 5, 5, 'F');
+    
+    // Header
+    doc.setFontSize(28);
+    doc.setTextColor(268, 83, 57);
+    doc.text('KALAKRITI EVENTS', 148.5, 50, { align: 'center' });
+    
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Certificate of Achievement', 148.5, 65, { align: 'center' });
+    
+    // Divider line
+    doc.setDrawColor(268, 83, 57);
+    doc.setLineWidth(0.5);
+    doc.line(60, 75, 237, 75);
+    
+    // Main content
+    doc.setFontSize(14);
+    doc.text('This is to certify that', 148.5, 95, { align: 'center' });
+    
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    doc.text(participant.name, 148.5, 110, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'normal');
+    doc.text(`has achieved ${participant.isTop100 ? `Rank ${participant.position} in Top 100` : getPositionText(participant.position)}`, 148.5, 125, { align: 'center' });
+    doc.text(`in ${participant.eventName} (${participant.categoryName})`, 148.5, 135, { align: 'center' });
+    doc.text(`Season ${participant.season}`, 148.5, 145, { align: 'center' });
+    
+    // Footer
+    doc.setFontSize(10);
+    doc.text(`Certificate ID: ${participant.participantId}`, 50, 175);
+    doc.text(`Date of Issue: ${new Date().toLocaleDateString()}`, 200, 175);
+    doc.text(`Score: ${participant.score}/100`, 148.5, 175, { align: 'center' });
+    
+    // Save the PDF
+    doc.save(`${participant.name}_Certificate_${participant.eventType}_${participant.season}.pdf`);
+    toast.success(`Certificate downloaded for ${participant.name}`);
   };
 
   const currentResult = getCurrentResult();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-kalakriti-purple-light via-kalakriti-blue-light to-kalakriti-light">
       <Navbar />
       
       <div className="flex-grow pt-20">
@@ -163,20 +227,20 @@ const NewResults = () => {
             transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-kalakriti-primary to-kalakriti-secondary bg-clip-text text-transparent mb-4">
               Competition Results
             </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-kalakriti-dark/80 max-w-3xl mx-auto">
               Discover the talented winners across different age categories and celebrate artistic excellence in our competitions.
             </p>
           </motion.div>
           
           <Tabs defaultValue="browse" className="max-w-7xl mx-auto">
-            <TabsList className="mb-8 grid grid-cols-2 w-full bg-white/80 backdrop-blur-sm">
-              <TabsTrigger value="browse" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white">
+            <TabsList className="mb-8 grid grid-cols-2 w-full bg-white/90 backdrop-blur-sm border border-kalakriti-primary/10">
+              <TabsTrigger value="browse" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-kalakriti-primary data-[state=active]:to-kalakriti-secondary data-[state=active]:text-white">
                 Browse Results
               </TabsTrigger>
-              <TabsTrigger value="search" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white">
+              <TabsTrigger value="search" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-kalakriti-primary data-[state=active]:to-kalakriti-secondary data-[state=active]:text-white">
                 Search Contestants
               </TabsTrigger>
             </TabsList>
@@ -189,18 +253,18 @@ const NewResults = () => {
                 className="space-y-8"
               >
                 {/* Event & Season Selection */}
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                <Card className="bg-white/90 backdrop-blur-sm border border-kalakriti-primary/10 shadow-xl">
                   <CardContent className="p-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                       <div>
-                        <label className="text-lg font-medium mb-3 block text-gray-700">Select Competition</label>
+                        <label className="text-lg font-medium mb-3 block text-kalakriti-dark/80">Select Competition</label>
                         <Select value={selectedEvent} onValueChange={setSelectedEvent}>
-                          <SelectTrigger className="h-12 bg-white">
+                          <SelectTrigger className="h-12 bg-white border-kalakriti-primary/20 focus:border-kalakriti-primary">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-white border-kalakriti-primary/20">
                             {eventTypes.map((event) => (
-                              <SelectItem key={event.type} value={event.type}>
+                              <SelectItem key={event.type} value={event.type} className="focus:bg-kalakriti-purple-light">
                                 {event.title}
                               </SelectItem>
                             ))}
@@ -209,15 +273,15 @@ const NewResults = () => {
                       </div>
                       
                       <div>
-                        <label className="text-lg font-medium mb-3 block text-gray-700">Select Season</label>
+                        <label className="text-lg font-medium mb-3 block text-kalakriti-dark/80">Select Season</label>
                         <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                          <SelectTrigger className="h-12 bg-white">
+                          <SelectTrigger className="h-12 bg-white border-kalakriti-primary/20 focus:border-kalakriti-primary">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
-                            {seasons.map((season) => (
-                              <SelectItem key={season} value={season}>
-                                Season {season}
+                          <SelectContent className="bg-white border-kalakriti-primary/20">
+                            {getAvailableSeasons().map((season, index) => (
+                              <SelectItem key={season} value={season} className="focus:bg-kalakriti-purple-light">
+                                Season {season} {index === 0 ? '(New)' : ''}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -226,10 +290,10 @@ const NewResults = () => {
                     </div>
 
                     {currentResult && (
-                      <div className="flex items-center gap-4 text-gray-600">
-                        <Calendar className="h-5 w-5" />
+                      <div className="flex items-center gap-4 text-kalakriti-dark/70">
+                        <Calendar className="h-5 w-5 text-kalakriti-primary" />
                         <span>Published: {new Date(currentResult.publishedDate).toLocaleDateString()}</span>
-                        <Badge className="bg-green-100 text-green-800">Live Results</Badge>
+                        <Badge className="bg-kalakriti-success text-white">Live Results</Badge>
                       </div>
                     )}
                   </CardContent>
@@ -244,9 +308,9 @@ const NewResults = () => {
                           key={category}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden"
+                          className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-kalakriti-primary/10"
                         >
-                          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
+                          <div className="bg-gradient-to-r from-kalakriti-primary to-kalakriti-secondary text-white p-6">
                             <h3 className="text-2xl font-bold flex items-center gap-3">
                               <Sparkles className="h-6 w-6" />
                               {ageCategoryNames[category as keyof typeof ageCategoryNames]}
@@ -261,10 +325,10 @@ const NewResults = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
                                 className={`flex items-center justify-between p-6 rounded-xl ${
-                                  index === 0 ? 'bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300' :
-                                  index === 1 ? 'bg-gradient-to-r from-gray-100 to-slate-100 border-2 border-gray-300' :
-                                  index === 2 ? 'bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-amber-300' :
-                                  'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200'
+                                  index === 0 ? 'bg-gradient-to-r from-kalakriti-gold-light to-amber-50 border-2 border-kalakriti-accent' :
+                                  index === 1 ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-300' :
+                                  index === 2 ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-kalakriti-warning' :
+                                  'bg-gradient-to-r from-kalakriti-blue-light to-kalakriti-purple-light border border-kalakriti-primary/20'
                                 }`}
                               >
                                 <div className="flex items-center gap-4">
@@ -272,15 +336,32 @@ const NewResults = () => {
                                     {getPositionIcon(entry.position)}
                                   </div>
                                   <div>
-                                    <h4 className="text-xl font-bold text-gray-900">{entry.name}</h4>
-                                    <p className="text-gray-600">ID: {entry.participantId}</p>
-                                    <p className="text-sm text-gray-500">{entry.remarks}</p>
+                                    <h4 className="text-xl font-bold text-kalakriti-dark">{entry.name}</h4>
+                                    <p className="text-kalakriti-dark/70">ID: {entry.participantId}</p>
+                                    <p className="text-sm text-kalakriti-dark/60">{entry.remarks}</p>
                                   </div>
                                 </div>
                                 
-                                <div className="text-right">
-                                  <p className="text-2xl font-bold text-purple-600">{entry.score}</p>
-                                  <p className="text-sm text-gray-500">Score</p>
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    <p className="text-2xl font-bold text-kalakriti-primary">{entry.score}</p>
+                                    <p className="text-sm text-kalakriti-dark/60">Score</p>
+                                  </div>
+                                  <Button
+                                    onClick={() => generateCertificate({
+                                      ...entry,
+                                      eventType: selectedEvent,
+                                      season: selectedSeason,
+                                      eventName: eventTypes.find(e => e.type === selectedEvent)?.title || '',
+                                      categoryName: ageCategoryNames[entry.ageCategory],
+                                      isTop100: false
+                                    })}
+                                    size="sm"
+                                    className="bg-kalakriti-accent hover:bg-kalakriti-warning text-kalakriti-dark"
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Certificate
+                                  </Button>
                                 </div>
                               </motion.div>
                             ))}
@@ -293,14 +374,14 @@ const NewResults = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden"
+                      className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-kalakriti-primary/10"
                     >
-                      <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white p-6">
+                      <div className="bg-gradient-to-r from-kalakriti-accent to-kalakriti-warning text-white p-6">
                         <h3 className="text-2xl font-bold flex items-center gap-3">
                           <Crown className="h-6 w-6" />
                           Top 100 Artists
                         </h3>
-                        <p className="text-amber-100 mt-2">Top 20 participants are highlighted</p>
+                        <p className="text-white/90 mt-2">Top 20 participants are highlighted</p>
                       </div>
                       
                       <div className="p-6">
@@ -313,29 +394,44 @@ const NewResults = () => {
                               transition={{ delay: index * 0.02 }}
                               className={`flex items-center justify-between p-4 rounded-lg transition-all duration-300 hover:shadow-md ${
                                 index < 20 
-                                  ? 'bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300 shadow-md' 
-                                  : 'bg-gray-50 hover:bg-gray-100'
+                                  ? 'bg-gradient-to-r from-kalakriti-gold-light to-amber-50 border-2 border-kalakriti-accent shadow-md' 
+                                  : 'bg-kalakriti-light hover:bg-gray-50'
                               }`}
                             >
                               <div className="flex items-center gap-4">
                                 <span className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                                  index < 20 ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white' : 'bg-gray-200 text-gray-700'
+                                  index < 20 ? 'bg-gradient-to-r from-kalakriti-accent to-kalakriti-warning text-white' : 'bg-gray-200 text-kalakriti-dark/70'
                                 }`}>
                                   {index + 1}
                                 </span>
                                 <div>
-                                  <h4 className="font-semibold text-gray-900">{entry.name}</h4>
-                                  <p className="text-sm text-gray-600">ID: {entry.participantId}</p>
+                                  <h4 className="font-semibold text-kalakriti-dark">{entry.name}</h4>
+                                  <p className="text-sm text-kalakriti-dark/70">ID: {entry.participantId}</p>
                                 </div>
                               </div>
                               
                               <div className="flex items-center gap-3">
                                 {index < 20 && (
-                                  <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0">
+                                  <Badge className="bg-gradient-to-r from-kalakriti-accent to-kalakriti-warning text-white border-0">
                                     Top 20
                                   </Badge>
                                 )}
-                                <span className="font-semibold text-purple-600">{entry.score}</span>
+                                <span className="font-semibold text-kalakriti-primary mr-3">{entry.score}</span>
+                                <Button
+                                  onClick={() => generateCertificate({
+                                    ...entry,
+                                    eventType: selectedEvent,
+                                    season: selectedSeason,
+                                    eventName: eventTypes.find(e => e.type === selectedEvent)?.title || '',
+                                    categoryName: 'Top 100',
+                                    isTop100: true
+                                  })}
+                                  size="sm"
+                                  className="bg-kalakriti-accent hover:bg-kalakriti-warning text-kalakriti-dark"
+                                >
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Certificate
+                                </Button>
                               </div>
                             </motion.div>
                           ))}
@@ -350,8 +446,8 @@ const NewResults = () => {
                     className="text-center py-16"
                   >
                     <Trophy className="h-24 w-24 text-gray-300 mx-auto mb-6" />
-                    <h3 className="text-2xl font-semibold text-gray-500 mb-2">No Results Published</h3>
-                    <p className="text-gray-400">Results for this event and season haven't been published yet.</p>
+                    <h3 className="text-2xl font-semibold text-kalakriti-dark/60 mb-2">No Results Published</h3>
+                    <p className="text-kalakriti-dark/50">Results for this event and season haven't been published yet.</p>
                   </motion.div>
                 )}
               </motion.div>
@@ -362,9 +458,9 @@ const NewResults = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8"
+                className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-kalakriti-primary/10"
               >
-                <h2 className="text-2xl font-bold mb-6 text-gray-900">Search for Contestants</h2>
+                <h2 className="text-2xl font-bold mb-6 text-kalakriti-dark">Search for Contestants</h2>
                 
                 <form onSubmit={handleSearch} className="mb-8">
                   <div className="flex flex-col sm:flex-row gap-4">
@@ -373,12 +469,12 @@ const NewResults = () => {
                         placeholder="Enter Contestant ID or Name"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="h-12 bg-white"
+                        className="h-12 bg-white border-kalakriti-primary/20 focus:border-kalakriti-primary"
                       />
                     </div>
                     <Button 
                       type="submit" 
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 h-12 px-8"
+                      className="bg-gradient-to-r from-kalakriti-primary to-kalakriti-secondary hover:from-kalakriti-primary/90 hover:to-kalakriti-secondary/90 h-12 px-8 text-white"
                       disabled={loading}
                     >
                       {loading ? (
@@ -431,11 +527,10 @@ const NewResults = () => {
                             </div>
                             
                             <Button 
-                              variant="outline" 
-                              className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 text-green-700 hover:from-green-100 hover:to-emerald-100"
-                              onClick={() => downloadCertificate(result.participantId)}
+                              className="bg-kalakriti-accent hover:bg-kalakriti-warning text-kalakriti-dark"
+                              onClick={() => generateCertificate(result)}
                             >
-                              <Download className="h-4 w-4 mr-2" />
+                              <FileText className="h-4 w-4 mr-2" />
                               Certificate
                             </Button>
                           </div>
