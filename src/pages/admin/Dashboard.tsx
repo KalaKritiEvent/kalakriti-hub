@@ -312,8 +312,9 @@ const AdminDashboard = () => {
                         <th className="text-left p-3">Email</th>
                         <th className="text-left p-3">Phone</th>
                         <th className="text-left p-3">City</th>
-                        <th className="text-left p-3">Status</th>
-                        <th className="text-left p-3">Actions</th>
+                         <th className="text-left p-3">Status</th>
+                         <th className="text-left p-3">Artwork</th>
+                         <th className="text-left p-3">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -329,16 +330,57 @@ const AdminDashboard = () => {
                           <td className="p-3 text-sm text-gray-600">{participant.email}</td>
                           <td className="p-3 text-sm text-gray-600">{participant.phone}</td>
                           <td className="p-3 text-sm text-gray-600">{participant.city}</td>
-                          <td className="p-3">
-                            <Badge variant={participant.status === 'registered' ? 'default' : 'secondary'}>
-                              {participant.status}
-                            </Badge>
-                          </td>
-                          <td className="p-3">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </td>
+                           <td className="p-3">
+                             <Badge variant={participant.status === 'registered' ? 'default' : 'secondary'}>
+                               {participant.status}
+                             </Badge>
+                           </td>
+                           <td className="p-3">
+                             {participant.submissionFileName ? (
+                               <div className="flex items-center gap-2">
+                                 {participant.submissionFileName.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                   <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                                     <Eye className="h-4 w-4 text-purple-600" />
+                                   </div>
+                                 ) : participant.submissionFileName.match(/\.(mp4|avi|mov|wmv|webm)$/i) ? (
+                                   <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-100 to-teal-100 flex items-center justify-center">
+                                     <FileText className="h-4 w-4 text-green-600" />
+                                   </div>
+                                 ) : (
+                                   <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
+                                     <FileText className="h-4 w-4 text-orange-600" />
+                                   </div>
+                                 )}
+                                 <div>
+                                   <p className="text-xs font-medium text-gray-700 truncate w-24" title={participant.submissionFileName}>
+                                     {participant.submissionFileName}
+                                   </p>
+                                   <p className="text-xs text-gray-500">
+                                     {participant.submissionFileName.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? 'Image' : 
+                                      participant.submissionFileName.match(/\.(mp4|avi|mov|wmv|webm)$/i) ? 'Video' : 'File'}
+                                   </p>
+                                 </div>
+                               </div>
+                             ) : (
+                               <span className="text-gray-400 text-sm">No submission</span>
+                             )}
+                           </td>
+                           <td className="p-3">
+                             <Button 
+                               size="sm" 
+                               variant="outline"
+                               onClick={() => {
+                                 if (participant.submissionFileName) {
+                                   // Here you would implement viewing the actual file
+                                   toast.info(`Viewing: ${participant.submissionFileName}`);
+                                 } else {
+                                   toast.error('No artwork submitted');
+                                 }
+                               }}
+                             >
+                               <Eye className="h-4 w-4" />
+                             </Button>
+                           </td>
                         </tr>
                       ))}
                     </tbody>

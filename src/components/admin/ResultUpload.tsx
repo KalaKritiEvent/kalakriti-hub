@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,17 +40,46 @@ interface ResultUploadProps {
 const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, participants }) => {
   const [results, setResults] = useState<EventResult[]>([]);
   const [previewResult, setPreviewResult] = useState<EventResult | null>(null);
-  const [selectedSeason, setSelectedSeason] = useState('2024');
+  const [selectedSeason, setSelectedSeason] = useState('Season 1');
   const [selectedEvent, setSelectedEvent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [editingResultIndex, setEditingResultIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const seasons = ['2024', '2023', '2022', '2021'];
+  // Dynamic seasons based on what's available for display
+  const availableSeasons = ['Season 1', 'Season 2', 'Season 3', 'Season 4'];
+  const getDisplayableSeasons = () => {
+    const publishedResults = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
+    const publishedSeasons = [...new Set(publishedResults.map((r: EventResult) => r.season))];
+    
+    // Always include Season 1, and include higher seasons only if they exist
+    const seasonsToShow = ['Season 1'];
+    availableSeasons.forEach(season => {
+      if (season !== 'Season 1' && publishedSeasons.includes(season)) {
+        seasonsToShow.push(season);
+      }
+    });
+    
+    // Add next season for new uploads
+    const maxSeasonNum = Math.max(...seasonsToShow.map(s => parseInt(s.split(' ')[1])));
+    const nextSeason = `Season ${maxSeasonNum + 1}`;
+    if (!seasonsToShow.includes(nextSeason) && maxSeasonNum < 4) {
+      seasonsToShow.push(nextSeason);
+    }
+    
+    return seasonsToShow;
+  };
   const ageCategoryNames = {
     adult: 'Adult (16yr-80yr)',
     children: 'Children (7yr-15yr)',
     preschool: 'Pre-school (2yr-6yr)'
   };
+
+  useEffect(() => {
+    // Load published results on component mount
+    const publishedResults = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
+    setResults(publishedResults);
+  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -123,33 +152,37 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
   };
 
   const downloadTemplate = () => {
+    // Generate dynamic participant IDs based on selected event and season
+    const seasonNum = selectedSeason.split(' ')[1] || '1';
+    const eventPrefix = selectedEvent.toUpperCase().substring(0, 3);
+    
     const adultData = [
-      { Name: 'Abhishek Kadu', 'Participant ID': 'ART24-1001', Score: 95.5, Remarks: 'Excellent creativity' },
-      { Name: 'Kartik Shambharkar', 'Participant ID': 'ART24-1002', Score: 94.2, Remarks: 'Great technique' },
-      { Name: 'Pratik Pandey', 'Participant ID': 'ART24-1003', Score: 92.8, Remarks: 'Good composition' },
-      { Name: 'Punam Wagh', 'Participant ID': 'ART24-1004', Score: 91.5, Remarks: 'Nice colors' },
-      { Name: 'Shraddha Ramteke', 'Participant ID': 'ART24-1005', Score: 90.2, Remarks: 'Creative approach' }
+      { Name: 'Abhishek Kadu', 'Participant ID': `${eventPrefix}S${seasonNum}-1001`, Score: 95.5, Remarks: 'Excellent creativity' },
+      { Name: 'Kartik Shambharkar', 'Participant ID': `${eventPrefix}S${seasonNum}-1002`, Score: 94.2, Remarks: 'Great technique' },
+      { Name: 'Pratik Pandey', 'Participant ID': `${eventPrefix}S${seasonNum}-1003`, Score: 92.8, Remarks: 'Good composition' },
+      { Name: 'Punam Wagh', 'Participant ID': `${eventPrefix}S${seasonNum}-1004`, Score: 91.5, Remarks: 'Nice colors' },
+      { Name: 'Shraddha Ramteke', 'Participant ID': `${eventPrefix}S${seasonNum}-1005`, Score: 90.2, Remarks: 'Creative approach' }
     ];
 
     const childrenData = [
-      { Name: 'Gauri Dahake', 'Participant ID': 'ART24-2001', Score: 93.5, Remarks: 'Amazing for age' },
-      { Name: 'Shital Parise', 'Participant ID': 'ART24-2002', Score: 92.1, Remarks: 'Very creative' },
-      { Name: 'Chetan Urje', 'Participant ID': 'ART24-2003', Score: 90.8, Remarks: 'Good details' },
-      { Name: 'Zoya Khan', 'Participant ID': 'ART24-2004', Score: 89.5, Remarks: 'Nice style' },
-      { Name: 'Arju Shah', 'Participant ID': 'ART24-2005', Score: 88.2, Remarks: 'Good effort' }
+      { Name: 'Gauri Dahake', 'Participant ID': `${eventPrefix}S${seasonNum}-2001`, Score: 93.5, Remarks: 'Amazing for age' },
+      { Name: 'Shital Parise', 'Participant ID': `${eventPrefix}S${seasonNum}-2002`, Score: 92.1, Remarks: 'Very creative' },
+      { Name: 'Chetan Urje', 'Participant ID': `${eventPrefix}S${seasonNum}-2003`, Score: 90.8, Remarks: 'Good details' },
+      { Name: 'Zoya Khan', 'Participant ID': `${eventPrefix}S${seasonNum}-2004`, Score: 89.5, Remarks: 'Nice style' },
+      { Name: 'Arju Shah', 'Participant ID': `${eventPrefix}S${seasonNum}-2005`, Score: 88.2, Remarks: 'Good effort' }
     ];
 
     const preschoolData = [
-      { Name: 'Rohit Bhise', 'Participant ID': 'ART24-3001', Score: 91.5, Remarks: 'Exceptional talent' },
-      { Name: 'Pranita Singh', 'Participant ID': 'ART24-3002', Score: 90.1, Remarks: 'Great colors' },
-      { Name: 'Yash Kadu', 'Participant ID': 'ART24-3003', Score: 88.8, Remarks: 'Nice work' },
-      { Name: 'Rina Bhasme', 'Participant ID': 'ART24-3004', Score: 87.5, Remarks: 'Creative ideas' },
-      { Name: 'Dolly Panbase', 'Participant ID': 'ART24-3005', Score: 86.2, Remarks: 'Good attempt' }
+      { Name: 'Rohit Bhise', 'Participant ID': `${eventPrefix}S${seasonNum}-3001`, Score: 91.5, Remarks: 'Exceptional talent' },
+      { Name: 'Pranita Singh', 'Participant ID': `${eventPrefix}S${seasonNum}-3002`, Score: 90.1, Remarks: 'Great colors' },
+      { Name: 'Yash Kadu', 'Participant ID': `${eventPrefix}S${seasonNum}-3003`, Score: 88.8, Remarks: 'Nice work' },
+      { Name: 'Rina Bhasme', 'Participant ID': `${eventPrefix}S${seasonNum}-3004`, Score: 87.5, Remarks: 'Creative ideas' },
+      { Name: 'Dolly Panbase', 'Participant ID': `${eventPrefix}S${seasonNum}-3005`, Score: 86.2, Remarks: 'Good attempt' }
     ];
 
     const top100Data = Array.from({ length: 100 }, (_, i) => ({
       Name: i < 20 ? `Highlighted Artist ${i + 1}` : `Artist ${i + 1}`,
-      'Participant ID': `ART24-T${String(i + 1).padStart(3, '0')}`,
+      'Participant ID': `${eventPrefix}S${seasonNum}-T${String(i + 1).padStart(3, '0')}`,
       Score: 95 - (i * 0.5),
       Remarks: i < 20 ? 'Top 20 Highlighted' : 'Top 100 Artist'
     }));
@@ -160,7 +193,7 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(preschoolData), 'Preschool');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(top100Data), 'Top100');
 
-    XLSX.writeFile(wb, `${selectedEvent}-results-template.xlsx`);
+    XLSX.writeFile(wb, `${selectedEvent}-${selectedSeason.replace(' ', '-')}-results-template.xlsx`);
     toast.success('Template downloaded successfully!');
   };
 
@@ -183,6 +216,41 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
     setIsEditing(false);
     
     toast.success('Results published successfully!');
+  };
+
+  const deleteResult = (index: number) => {
+    const updatedResults = results.filter((_, i) => i !== index);
+    setResults(updatedResults);
+    localStorage.setItem('kalakriti-event-results', JSON.stringify(updatedResults));
+    toast.success('Result deleted successfully!');
+  };
+
+  const startEditingResult = (index: number) => {
+    setEditingResultIndex(index);
+    setPreviewResult({ ...results[index] });
+    setIsEditing(true);
+  };
+
+  const saveEditedResult = () => {
+    if (!previewResult || editingResultIndex === null) return;
+
+    const updatedResults = [...results];
+    updatedResults[editingResultIndex] = previewResult;
+    
+    setResults(updatedResults);
+    localStorage.setItem('kalakriti-event-results', JSON.stringify(updatedResults));
+    
+    setEditingResultIndex(null);
+    setPreviewResult(null);
+    setIsEditing(false);
+    
+    toast.success('Result updated successfully!');
+  };
+
+  const cancelEditing = () => {
+    setEditingResultIndex(null);
+    setPreviewResult(null);
+    setIsEditing(false);
   };
 
   const editResultEntry = (category: keyof EventResult['topPositions'] | 'top100', index: number, field: string, value: any) => {
@@ -230,8 +298,10 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {seasons.map(season => (
-                    <SelectItem key={season} value={season}>{season}</SelectItem>
+                  {getDisplayableSeasons().map(season => (
+                    <SelectItem key={season} value={season}>
+                      {season}{season === getDisplayableSeasons().slice(-1)[0] && getDisplayableSeasons().length > 1 ? ' (New)' : ''}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -303,13 +373,31 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
                   <Edit className="h-4 w-4 mr-2" />
                   {isEditing ? 'Stop Editing' : 'Edit'}
                 </Button>
-                <Button
-                  onClick={publishResults}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                >
-                  <Trophy className="h-4 w-4 mr-2" />
-                  Publish Results
-                </Button>
+                {editingResultIndex !== null ? (
+                  <>
+                    <Button
+                      onClick={saveEditedResult}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </Button>
+                    <Button
+                      onClick={cancelEditing}
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={publishResults}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  >
+                    <Trophy className="h-4 w-4 mr-2" />
+                    Publish Results
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -407,7 +495,25 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
                       Published on {new Date(result.publishedDate!).toLocaleDateString()}
                     </p>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Published</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800">Published</Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditingResult(index)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => deleteResult(index)}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
