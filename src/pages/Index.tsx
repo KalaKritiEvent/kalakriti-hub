@@ -61,43 +61,43 @@ const Index = () => {
       </section>
       
       {/* About Kalakriti Section */}
-      <section className="bg-gradient-to-b from-white to-gray-50 py-20">
+      <section className="bg-gradient-to-b from-white to-gray-50 py-12 md:py-20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
+          <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-12">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="lg:w-1/2"
+              className="lg:w-1/2 w-full"
             >
               <span className="bg-kalakriti-gold-light text-kalakriti-accent px-4 py-1 rounded-full text-sm font-medium inline-block mb-4">
                 About Us
               </span>
-              <h2 className="h2 mb-6">Celebrating Art & Creativity Since 2018</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="h2 mb-4 md:mb-6">Celebrating Art & Creativity Since 2024</h2>
+              <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">
                 Kalakriti Events Organizes Competitions with a vision to create a platform where artists of all backgrounds and skill levels can showcase their talent, receive recognition, and connect with a community of like-minded creators.
               </p>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 md:mb-8 text-sm md:text-base">
                 Our competitions span multiple artistic disciplines, from visual arts to performance, providing opportunities for creative expression in various forms. We believe in the power of art to inspire, transform, and unite.
               </p>
-              <div className="flex flex-wrap gap-6 mt-8">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-kalakriti-primary">10+</p>
-                  <p className="text-gray-600">Events Yearly</p>
+              <div className="flex flex-wrap gap-4 md:gap-6 mt-6 md:mt-8 justify-center lg:justify-start">
+                <div className="text-center min-w-[100px]">
+                  <p className="text-2xl md:text-3xl font-bold text-kalakriti-primary">10+</p>
+                  <p className="text-gray-600 text-xs md:text-sm">Events Yearly</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-kalakriti-primary">5000+</p>
-                  <p className="text-gray-600">Artists</p>
+                <div className="text-center min-w-[100px]">
+                  <p className="text-2xl md:text-3xl font-bold text-kalakriti-primary">5000+</p>
+                  <p className="text-gray-600 text-xs md:text-sm">Artists</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-kalakriti-primary">20+</p>
-                  <p className="text-gray-600">States Reached</p>
+                <div className="text-center min-w-[100px]">
+                  <p className="text-2xl md:text-3xl font-bold text-kalakriti-primary">20+</p>
+                  <p className="text-gray-600 text-xs md:text-sm">States Reached</p>
                 </div>
               </div>
-              <div className="mt-8">
+              <div className="mt-6 md:mt-8 flex justify-center lg:justify-start">
                 <Link to="/about-us">
-                  <Button variant="outline" className="group">
+                  <Button variant="outline" className="group text-sm md:text-base">
                     Learn More About Us
                     <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
@@ -110,27 +110,27 @@ const Index = () => {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
-              className="lg:w-1/2"
+              className="lg:w-1/2 w-full"
             >
-              <div className="relative">
+              <div className="relative px-6 md:px-0">
                 <div className="rounded-lg overflow-hidden shadow-smooth">
                   <img 
                     src={aboutKalakriti} 
                     alt="Kalakriti Event" 
-                    className="w-full h-auto"
+                    className="w-full h-auto object-cover"
                   />
                 </div>
-                <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg shadow-smooth hidden md:block">
+                <div className="absolute -bottom-4 -left-2 md:-bottom-6 md:-left-6 bg-white p-2 md:p-4 rounded-lg shadow-smooth">
                   <img 
                     src={aboutKalakritiSmall} 
                     alt="Art Exhibition" 
-                    className="w-24 h-24 object-cover rounded"
+                    className="w-16 h-16 md:w-24 md:h-24 object-cover rounded"
                   />
                 </div>
-                <div className="absolute -top-6 -right-6 bg-kalakriti-accent text-kalakriti-primary p-4 rounded-lg shadow-smooth hidden md:flex items-center justify-center">
+                <div className="absolute -top-4 -right-2 md:-top-6 md:-right-6 bg-kalakriti-accent text-kalakriti-primary p-3 md:p-4 rounded-lg shadow-smooth flex items-center justify-center">
                   <div className="text-center">
-                    <p className="text-xl font-bold">6<sup>th</sup></p>
-                    <p className="text-sm font-medium">Year</p>
+                    <p className="text-lg md:text-xl font-bold">2<sup className="text-xs">nd</sup></p>
+                    <p className="text-xs md:text-sm font-medium">Year</p>
                   </div>
                 </div>
               </div>
