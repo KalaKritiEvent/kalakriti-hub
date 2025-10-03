@@ -106,21 +106,22 @@ const UserDashboard = () => {
                       <h3 className="font-semibold text-lg">
                         {submissionData.firstName} {submissionData.lastName}
                       </h3>
+                      <p className="text-sm text-gray-500">Age: {submissionData.age}</p>
                     </div>
                     
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-sm">
                         <Mail className="h-4 w-4 text-gray-400" />
-                        <span>{submissionData.email}</span>
+                        <span className="break-all">{submissionData.email}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Phone className="h-4 w-4 text-gray-400" />
-                        <span>{submissionData.phone}</span>
+                        <span>{submissionData.phoneNumber}</span>
                       </div>
                       {submissionData.city && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span>{submissionData.city}, {submissionData.state}</span>
+                        <div className="flex items-start gap-2 text-sm">
+                          <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
+                          <span>{submissionData.address}, {submissionData.city}, {submissionData.state} - {submissionData.pincode}</span>
                         </div>
                       )}
                     </div>
@@ -128,7 +129,10 @@ const UserDashboard = () => {
                 ) : (
                   <div className="text-center text-gray-500">
                     <User className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                    <p>Complete your submission to see profile details</p>
+                    <p className="mb-3">Complete your submission to see profile details</p>
+                    <Button onClick={() => window.location.href = '/events'}>
+                      Submit Your Artwork
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -166,7 +170,7 @@ const UserDashboard = () => {
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-gray-400" />
                         <span className="text-sm">
-                          <strong>Artwork Title:</strong> {submissionData.artworkTitle || 'Not specified'}
+                          <strong>Artwork Title:</strong> {submissionData.title || 'Not specified'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -175,6 +179,18 @@ const UserDashboard = () => {
                           <strong>Files Submitted:</strong> {submissionData.numberOfArtworks}
                         </span>
                       </div>
+                      {submissionData.files && submissionData.files.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium mb-2">Uploaded Artworks:</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {submissionData.files.map((file: string, idx: number) => (
+                              <div key={idx} className="border rounded p-2 text-xs bg-gray-50">
+                                📎 Artwork {idx + 1}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
@@ -192,10 +208,10 @@ const UserDashboard = () => {
                     </div>
                   </div>
                   
-                  {submissionData.artworkDescription && (
+                  {submissionData.description && (
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <p className="text-sm"><strong>Description:</strong></p>
-                      <p className="text-sm text-gray-600 mt-1">{submissionData.artworkDescription}</p>
+                      <p className="text-sm text-gray-600 mt-1">{submissionData.description}</p>
                     </div>
                   )}
                 </CardContent>
@@ -213,24 +229,94 @@ const UserDashboard = () => {
                     variant="outline" 
                     className="h-auto p-4 flex flex-col items-center gap-2"
                     onClick={() => {
-                      // Check if user has results
                       const results = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
-                      const userResult = results.find((r: any) => {
-                        return Object.values(r.topPositions).some((category: any) => 
-                          category.some((entry: any) => entry.participantId === userData.contestantId)
-                        ) || r.top100.some((entry: any) => entry.participantId === userData.contestantId);
-                      });
-                      
-                      if (!userResult) {
-                        toast.error('Certificate not available yet. Results pending.');
-                      } else {
-                        toast.success('Certificate download feature coming soon!');
+                      let userResult = null;
+                      let position = '';
+                      let category = '';
+
+                      // Find user's result
+                      for (const result of results) {
+                        // Check top positions
+                        for (const [cat, entries] of Object.entries(result.results || {})) {
+                          const entry = (entries as any[]).find((e: any) => e.participantId === userData.contestantId);
+                          if (entry) {
+                            userResult = result;
+                            position = entry.rank || entry.position;
+                            category = cat;
+                            break;
+                          }
+                        }
+                        if (userResult) break;
                       }
+
+                      if (!userResult) {
+                        toast.error('Certificate not available. You need to be in the results to download a certificate.');
+                        return;
+                      }
+
+                      // Generate certificate using jsPDF
+                      import('jspdf').then(({ default: jsPDF }) => {
+                        const doc = new jsPDF({
+                          orientation: 'landscape',
+                          unit: 'mm',
+                          format: 'a4'
+                        });
+
+                        // Certificate design
+                        doc.setFillColor(248, 250, 252);
+                        doc.rect(0, 0, 297, 210, 'F');
+                        
+                        // Border
+                        doc.setDrawColor(139, 92, 246);
+                        doc.setLineWidth(3);
+                        doc.rect(10, 10, 277, 190);
+                        
+                        // Inner border
+                        doc.setDrawColor(251, 191, 36);
+                        doc.setLineWidth(1);
+                        doc.rect(15, 15, 267, 180);
+
+                        // Title
+                        doc.setFontSize(40);
+                        doc.setTextColor(88, 28, 135);
+                        doc.text('Certificate of Achievement', 148.5, 50, { align: 'center' });
+
+                        // Subtitle
+                        doc.setFontSize(16);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text('This is to certify that', 148.5, 70, { align: 'center' });
+
+                        // Participant name
+                        doc.setFontSize(32);
+                        doc.setTextColor(30, 41, 59);
+                        const participantName = submissionData ? `${submissionData.firstName} ${submissionData.lastName}` : 'Participant';
+                        doc.text(participantName, 148.5, 90, { align: 'center' });
+
+                        // Achievement text
+                        doc.setFontSize(14);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text(`has secured ${position} position in ${category}`, 148.5, 105, { align: 'center' });
+                        doc.text(`at Kalakriti ${userResult.eventType.charAt(0).toUpperCase() + userResult.eventType.slice(1)} Competition`, 148.5, 115, { align: 'center' });
+                        doc.text(`${userResult.season} - ${new Date(userResult.publishDate).getFullYear()}`, 148.5, 125, { align: 'center' });
+
+                        // Footer
+                        doc.setFontSize(12);
+                        doc.setTextColor(139, 92, 246);
+                        doc.text('Kalakriti Events', 148.5, 165, { align: 'center' });
+                        doc.setFontSize(10);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text(`Issue Date: ${new Date().toLocaleDateString()}`, 148.5, 175, { align: 'center' });
+                        doc.text(`Contestant ID: ${userData.contestantId}`, 148.5, 182, { align: 'center' });
+
+                        // Save
+                        doc.save(`Kalakriti_Certificate_${userData.contestantId}.pdf`);
+                        toast.success('Certificate downloaded successfully!');
+                      });
                     }}
                   >
                     <Download className="h-6 w-6" />
                     <span>Download Certificate</span>
-                    <span className="text-xs text-gray-500">Check eligibility</span>
+                    <span className="text-xs text-gray-500">For winners only</span>
                   </Button>
                   <Button 
                     variant="outline" 

@@ -33,6 +33,7 @@ interface EventResult {
   top100: ResultEntry[];
   publishedDate: string;
   isPublished: boolean;
+  isLatest?: boolean;
 }
 
 const NewResults = () => {
@@ -295,11 +296,14 @@ const NewResults = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-white border-kalakriti-primary/20">
-                            {getAvailableSeasons().map((season, index) => (
-                              <SelectItem key={season} value={season} className="focus:bg-kalakriti-purple-light">
-                                Season {season} {index === 0 ? '(New)' : ''}
-                              </SelectItem>
-                            ))}
+                            {getAvailableSeasons().map((season) => {
+                              const result = results.find(r => r.season === season && r.eventType === selectedEvent);
+                              return (
+                                <SelectItem key={season} value={season} className="focus:bg-kalakriti-purple-light">
+                                  {season} {result?.isLatest ? '✨ (New)' : ''}
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                       </div>
@@ -363,6 +367,7 @@ const NewResults = () => {
                                     <p className="text-2xl font-bold text-kalakriti-primary">{entry.score}</p>
                                     <p className="text-sm text-kalakriti-dark/60">Score</p>
                                   </div>
+                                  {/* Certificate download moved to dashboard */}
                                 </div>
                               </motion.div>
                             ))}

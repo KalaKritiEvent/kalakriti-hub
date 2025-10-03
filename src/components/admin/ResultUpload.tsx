@@ -29,6 +29,7 @@ interface EventResult {
   top100: ResultEntry[];
   publishedDate?: string;
   isPublished: boolean;
+  isLatest?: boolean;
 }
 
 interface ResultUploadProps {
@@ -40,35 +41,14 @@ interface ResultUploadProps {
 const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, participants }) => {
   const [results, setResults] = useState<EventResult[]>([]);
   const [previewResult, setPreviewResult] = useState<EventResult | null>(null);
-  const [selectedSeason, setSelectedSeason] = useState('Season 1');
+  const [selectedSeason, setSelectedSeason] = useState('');
   const [selectedEvent, setSelectedEvent] = useState('');
+  const [isLatest, setIsLatest] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingResultIndex, setEditingResultIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Dynamic seasons based on what's available for display
-  const availableSeasons = ['Season 1', 'Season 2', 'Season 3', 'Season 4'];
-  const getDisplayableSeasons = () => {
-    const publishedResults = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
-    const publishedSeasons = [...new Set(publishedResults.map((r: EventResult) => r.season))];
-    
-    // Always include Season 1, and include higher seasons only if they exist
-    const seasonsToShow = ['Season 1'];
-    availableSeasons.forEach(season => {
-      if (season !== 'Season 1' && publishedSeasons.includes(season)) {
-        seasonsToShow.push(season);
-      }
-    });
-    
-    // Add next season for new uploads
-    const maxSeasonNum = Math.max(...seasonsToShow.map(s => parseInt(s.split(' ')[1])));
-    const nextSeason = `Season ${maxSeasonNum + 1}`;
-    if (!seasonsToShow.includes(nextSeason) && maxSeasonNum < 4) {
-      seasonsToShow.push(nextSeason);
-    }
-    
-    return seasonsToShow;
-  };
+  // Seasons are now text input, not dropdown
   const ageCategoryNames = {
     adult: 'Adult (16yr-80yr)',
     children: 'Children (7yr-15yr)',
@@ -212,13 +192,23 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
   const publishResults = () => {
     if (!previewResult) return;
 
+    // If marked as latest, unmark all other results for this event type
+    const existingResults = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
+    if (isLatest) {
+      existingResults.forEach((result: any) => {
+        if (result.eventType === selectedEvent) {
+          result.isLatest = false;
+        }
+      });
+    }
+
     const publishedResult = {
       ...previewResult,
       isPublished: true,
-      publishedDate: new Date().toISOString()
+      publishedDate: new Date().toISOString(),
+      isLatest: isLatest
     };
 
-    const existingResults = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
     const updatedResults = [...existingResults, publishedResult];
     
     setResults(updatedResults);
@@ -226,6 +216,7 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
     
     setPreviewResult(null);
     setIsEditing(false);
+    setIsLatest(false);
     
     toast.success('Results published successfully!');
   };
@@ -307,19 +298,15 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Season</label>
-              <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {getDisplayableSeasons().map(season => (
-                    <SelectItem key={season} value={season}>
-                      {season}{season === getDisplayableSeasons().slice(-1)[0] && getDisplayableSeasons().length > 1 ? ' (New)' : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="block text-sm font-medium mb-2">Season (Custom Name)</label>
+              <input
+                type="text"
+                placeholder="e.g., Season 1, Spring 2025, etc."
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+              <p className="text-xs text-gray-500 mt-1">Enter a custom season name</p>
             </div>
             
             <div>
@@ -339,11 +326,24 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
             </div>
           </div>
 
+          <div className="flex items-center space-x-2 mb-4">
+            <input
+              type="checkbox"
+              id="isLatest"
+              checked={isLatest}
+              onChange={(e) => setIsLatest(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <label htmlFor="isLatest" className="text-sm font-medium cursor-pointer">
+              Mark as Latest/New Season (will be highlighted on results page)
+            </label>
+          </div>
+
           <div className="flex gap-3">
             <Button
               onClick={downloadTemplate}
               variant="outline"
-              disabled={!selectedEvent}
+              disabled={!selectedEvent || !selectedSeason}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
@@ -352,7 +352,7 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
             
             <Button
               onClick={() => fileInputRef.current?.click()}
-              disabled={!selectedEvent}
+              disabled={!selectedEvent || !selectedSeason}
               className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               <Upload className="h-4 w-4" />

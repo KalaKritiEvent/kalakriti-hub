@@ -139,7 +139,7 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Testimonials Section */}
+      {/* Reviews Section (User Submitted & Approved) */}
       <section className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -149,71 +149,85 @@ const Index = () => {
           className="text-center mb-12"
         >
           <span className="bg-kalakriti-blue-light text-kalakriti-secondary px-4 py-1 rounded-full text-sm font-medium inline-block mb-4">
-            Testimonials
+            Reviews
           </span>
           <h2 className="h2 mb-4">What Our Artists Say</h2>
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            Hear from participants who have showcased their talent and grown their artistic journey with Kalakriti Hub.
+          <p className="text-gray-600 max-w-3xl mx-auto mb-4">
+            Hear from participants who have showcased their talent and grown their artistic journey with Kalakriti.
           </p>
+          <Link to="/submit-review">
+            <Button variant="outline" className="text-sm">
+              Share Your Experience
+            </Button>
+          </Link>
         </motion.div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {[
-            {
-              name: "Priya Sharma",
-              role: "Visual Artist",
-              avatar: testimonial1,
-              quote: "Participating in Kalakriti's art competition gave me the platform I needed to showcase my work. The feedback from judges was invaluable for my growth as an artist."
-            },
-            {
-              name: "Rahul Verma",
-              role: "Photographer",
-              avatar: testimonial2,
-              quote: "The photography competition at Kalakriti was exceptionally well-organized. The exposure I received helped me connect with other creators and even led to professional opportunities."
-            },
-            {
-              name: "Neha Patel",
-              role: "Classical Dancer",
-              avatar: testimonial3,
-              quote: "As a classical dancer, finding the right platform to perform is crucial. Kalakriti Dance Competition provided not just a stage, but also recognition and appreciation for traditional art forms."
-            },
-            {
-              name: "Arjun Singh",
-              role: "Singer",
-              avatar: testimonial4,
-              quote: "The singing competition helped me gain confidence and connect with music lovers. The professional judging panel provided constructive feedback that improved my vocal skills significantly."
-            },
-            {
-              name: "Meera Gupta",
-              role: "Mehndi Artist",
-              avatar: testimonial5,
-              quote: "Winning the mehndi championship at Kalakriti was a dream come true. The competition celebrated traditional art while encouraging innovation, which is exactly what I was looking for."
-            }
-          ].slice(0, window.innerWidth < 768 ? 3 : 5).map((testimonial, index) => (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              key={testimonial.name}
-              className="bg-white p-4 md:p-6 rounded-xl shadow-smooth hover:shadow-lg transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-4">
-                <div className="mr-3 md:mr-4">
-                  <img 
-                    src={testimonial.avatar} 
-                    alt={testimonial.name} 
-                    className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
-                  />
+          {(() => {
+            // Get approved reviews from localStorage
+            const approvedReviews = JSON.parse(localStorage.getItem('kalakriti-reviews') || '[]')
+              .filter((review: any) => review.status === 'approved')
+              .slice(0, window.innerWidth < 768 ? 3 : 6);
+
+            // Fallback testimonials if no approved reviews
+            const fallbackTestimonials = [
+              {
+                name: "Priya Sharma",
+                role: "Visual Artist",
+                avatar: testimonial1,
+                review: "Participating in Kalakriti's art competition gave me the platform I needed to showcase my work. The feedback from judges was invaluable for my growth as an artist.",
+                rating: 5
+              },
+              {
+                name: "Rahul Verma",
+                role: "Photographer",
+                avatar: testimonial2,
+                review: "The photography competition at Kalakriti was exceptionally well-organized. The exposure I received helped me connect with other creators and even led to professional opportunities.",
+                rating: 5
+              },
+              {
+                name: "Neha Patel",
+                role: "Classical Dancer",
+                avatar: testimonial3,
+                review: "As a classical dancer, finding the right platform to perform is crucial. Kalakriti Dance Competition provided not just a stage, but also recognition and appreciation for traditional art forms.",
+                rating: 5
+              }
+            ];
+
+            const reviews = approvedReviews.length > 0 ? approvedReviews : fallbackTestimonials.slice(0, window.innerWidth < 768 ? 3 : 3);
+
+            return reviews.map((review: any, index: number) => (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                key={review.id || review.name}
+                className="bg-white p-4 md:p-6 rounded-xl shadow-smooth hover:shadow-lg transition-shadow duration-300"
+              >
+                <div className="flex items-center mb-4">
+                  <div className="mr-3 md:mr-4">
+                    {review.avatar ? (
+                      <img 
+                        src={review.avatar} 
+                        alt={review.name} 
+                        className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                        {review.name[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-sm md:text-base text-kalakriti-primary">{review.name}</h3>
+                    {review.role && <p className="text-xs md:text-sm text-gray-600">{review.role}</p>}
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-sm md:text-base text-kalakriti-primary">{testimonial.name}</h3>
-                  <p className="text-xs md:text-sm text-gray-600">{testimonial.role}</p>
-                </div>
-              </div>
-              <p className="text-gray-600 italic text-sm md:text-base">"{testimonial.quote}"</p>
-            </motion.div>
-          ))}
+                <p className="text-gray-600 italic text-sm md:text-base">"{review.review}"</p>
+              </motion.div>
+            ));
+          })()}
         </div>
       </section>
       

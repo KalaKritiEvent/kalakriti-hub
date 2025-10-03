@@ -15,6 +15,7 @@ import AboutUs from "./pages/AboutUs";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
 import NewResults from "./pages/NewResults";
+import SubmitReview from "./pages/reviews/SubmitReview";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import { useEffect } from "react";
@@ -50,6 +51,7 @@ const App = () => {
               <Route path="/events" element={<Events />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/results" element={<NewResults />} />
+              <Route path="/submit-review" element={<SubmitReview />} />
               <Route path="/admin" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

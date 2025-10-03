@@ -24,6 +24,7 @@ import {
 import { toast } from 'sonner';
 import ResultUpload from '@/components/admin/ResultUpload';
 import QueriesManagement from '@/components/admin/QueriesManagement';
+import ReviewsManagement from '@/components/admin/ReviewsManagement';
 import * as XLSX from 'xlsx';
 
 interface Participant {
@@ -221,11 +222,12 @@ const AdminDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="participants">Participants</TabsTrigger>
             <TabsTrigger value="results">Results</TabsTrigger>
             <TabsTrigger value="queries">Queries</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -463,6 +465,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="queries" className="space-y-6">
             <QueriesManagement />
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-6">
+            <ReviewsManagement />
           </TabsContent>
         </Tabs>
       </div>

@@ -186,6 +186,29 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
     description: ''
   });
 
+  // Auto-fetch user data if logged in
+  React.useEffect(() => {
+    const user = localStorage.getItem('kalakriti-user');
+    const submission = localStorage.getItem('kalakriti-submission');
+    
+    if (submission) {
+      const submissionData = JSON.parse(submission);
+      setFormData({
+        firstName: submissionData.firstName || '',
+        lastName: submissionData.lastName || '',
+        age: submissionData.age || '',
+        email: submissionData.email || '',
+        phoneNumber: submissionData.phoneNumber || '',
+        address: submissionData.address || '',
+        city: submissionData.city || '',
+        state: submissionData.state || '',
+        pincode: submissionData.pincode || '',
+        title: '',
+        description: ''
+      });
+    }
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
