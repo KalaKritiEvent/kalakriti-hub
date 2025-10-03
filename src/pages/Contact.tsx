@@ -44,7 +44,17 @@ const Contact = () => {
     
     setLoading(true);
     
-    // Simulate API call
+    // Save query to localStorage
+    const query = {
+      id: `QUERY-${Date.now()}`,
+      ...formData,
+      submittedAt: new Date().toISOString(),
+      status: 'pending'
+    };
+    
+    const existingQueries = JSON.parse(localStorage.getItem('kalakriti-queries') || '[]');
+    localStorage.setItem('kalakriti-queries', JSON.stringify([...existingQueries, query]));
+    
     setTimeout(() => {
       toast.success('Your message has been sent successfully!');
       setFormData({

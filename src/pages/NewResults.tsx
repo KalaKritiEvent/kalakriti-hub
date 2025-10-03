@@ -230,9 +230,25 @@ const NewResults = () => {
             <h1 className="text-5xl font-bold bg-gradient-to-r from-kalakriti-primary to-kalakriti-secondary bg-clip-text text-transparent mb-4">
               Competition Results
             </h1>
-            <p className="text-lg text-kalakriti-dark/80 max-w-3xl mx-auto">
+            <p className="text-lg text-kalakriti-dark/80 max-w-3xl mx-auto mb-6">
               Discover the talented winners across different age categories and celebrate artistic excellence in our competitions.
             </p>
+            <Button
+              onClick={() => {
+                const token = localStorage.getItem('kalakriti-token');
+                if (!token) {
+                  toast.error('Please login to download your certificate');
+                  setTimeout(() => window.location.href = '/auth/login', 1500);
+                } else {
+                  window.location.href = '/dashboard';
+                }
+              }}
+              className="bg-gradient-to-r from-kalakriti-accent to-kalakriti-warning hover:from-kalakriti-warning hover:to-kalakriti-accent text-kalakriti-dark font-semibold"
+              size="lg"
+            >
+              <Download className="h-5 w-5 mr-2" />
+              Download Your Certificate
+            </Button>
           </motion.div>
           
           <Tabs defaultValue="browse" className="max-w-7xl mx-auto">
@@ -347,21 +363,6 @@ const NewResults = () => {
                                     <p className="text-2xl font-bold text-kalakriti-primary">{entry.score}</p>
                                     <p className="text-sm text-kalakriti-dark/60">Score</p>
                                   </div>
-                                  <Button
-                                    onClick={() => generateCertificate({
-                                      ...entry,
-                                      eventType: selectedEvent,
-                                      season: selectedSeason,
-                                      eventName: eventTypes.find(e => e.type === selectedEvent)?.title || '',
-                                      categoryName: ageCategoryNames[entry.ageCategory],
-                                      isTop100: false
-                                    })}
-                                    size="sm"
-                                    className="bg-kalakriti-accent hover:bg-kalakriti-warning text-kalakriti-dark"
-                                  >
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Certificate
-                                  </Button>
                                 </div>
                               </motion.div>
                             ))}

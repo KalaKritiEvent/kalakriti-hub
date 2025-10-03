@@ -91,7 +91,7 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         
-        // Process each worksheet (assuming one per age category + top 100)
+        // NEW FORMAT: Single sheet with Category and Rank columns
         const eventResult: EventResult = {
           eventType: selectedEvent,
           season: selectedSeason,
@@ -104,97 +104,109 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
           isPublished: false
         };
 
-        // Process worksheets
-        workbook.SheetNames.forEach(sheetName => {
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        // Get first sheet (should be the only sheet now)
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-          if (sheetName.toLowerCase().includes('adult')) {
-            eventResult.topPositions.adult = processSheetData(jsonData, 'adult');
-          } else if (sheetName.toLowerCase().includes('children')) {
-            eventResult.topPositions.children = processSheetData(jsonData, 'children');
-          } else if (sheetName.toLowerCase().includes('preschool')) {
-            eventResult.topPositions.preschool = processSheetData(jsonData, 'preschool');
-          } else if (sheetName.toLowerCase().includes('top100')) {
-            eventResult.top100 = processTop100Data(jsonData);
+        // Process data based on Category and Rank columns
+        jsonData.forEach((row: any) => {
+          const category = (row.Category || row.category || '').toLowerCase();
+          const rank = parseInt(row.Rank || row.rank || '0');
+          
+          const entry: ResultEntry = {
+            participantId: row['Participant ID'] || row.participantId || `${selectedEvent}-${Date.now()}-${Math.random()}`,
+            name: row.Name || row.name || 'Unknown',
+            ageCategory: category === 'adult' ? 'adult' : 
+                        category === 'children' ? 'children' : 
+                        category === 'preschool' ? 'preschool' : 'adult',
+            position: rank,
+            score: parseFloat(row.Score || row.score || '0'),
+            remarks: row.Remarks || row.remarks || ''
+          };
+
+          // Categorize based on Category column
+          if (category === 'adult' && rank <= 5) {
+            eventResult.topPositions.adult.push(entry);
+          } else if (category === 'children' && rank <= 5) {
+            eventResult.topPositions.children.push(entry);
+          } else if (category === 'preschool' && rank <= 5) {
+            eventResult.topPositions.preschool.push(entry);
+          } else if (category === 'top100' && rank <= 100) {
+            eventResult.top100.push(entry);
           }
         });
+
+        // Sort each category by position
+        eventResult.topPositions.adult.sort((a, b) => a.position - b.position);
+        eventResult.topPositions.children.sort((a, b) => a.position - b.position);
+        eventResult.topPositions.preschool.sort((a, b) => a.position - b.position);
+        eventResult.top100.sort((a, b) => a.position - b.position);
 
         setPreviewResult(eventResult);
         toast.success('Excel file uploaded successfully! Please review the results.');
       } catch (error) {
+        console.error('Excel processing error:', error);
         toast.error('Error processing Excel file. Please check the format.');
       }
     };
     reader.readAsArrayBuffer(file);
   };
 
-  const processSheetData = (data: any[], category: 'adult' | 'children' | 'preschool'): ResultEntry[] => {
-    return data.slice(0, 5).map((row: any, index: number) => ({
-      participantId: row.participantId || row['Participant ID'] || `${selectedEvent}-${Date.now()}-${index}`,
-      name: row.name || row.Name || 'Unknown',
-      ageCategory: category,
-      position: index + 1,
-      score: row.score || row.Score || 0,
-      remarks: row.remarks || row.Remarks || ''
-    }));
-  };
-
-  const processTop100Data = (data: any[]): ResultEntry[] => {
-    return data.slice(0, 100).map((row: any, index: number) => ({
-      participantId: row.participantId || row['Participant ID'] || `${selectedEvent}-${Date.now()}-${index}`,
-      name: row.name || row.Name || 'Unknown',
-      ageCategory: 'adult', // Default for top 100
-      position: index + 1,
-      score: row.score || row.Score || 0,
-      remarks: row.remarks || row.Remarks || ''
-    }));
-  };
-
   const downloadTemplate = () => {
-    // Generate dynamic participant IDs based on selected event and season
+    // NEW FORMAT: Single sheet with Category and Rank columns
     const seasonNum = selectedSeason.split(' ')[1] || '1';
     const eventPrefix = selectedEvent.toUpperCase().substring(0, 3);
     
-    const adultData = [
-      { Name: 'Abhishek Kadu', 'Participant ID': `${eventPrefix}S${seasonNum}-1001`, Score: 95.5, Remarks: 'Excellent creativity' },
-      { Name: 'Kartik Shambharkar', 'Participant ID': `${eventPrefix}S${seasonNum}-1002`, Score: 94.2, Remarks: 'Great technique' },
-      { Name: 'Pratik Pandey', 'Participant ID': `${eventPrefix}S${seasonNum}-1003`, Score: 92.8, Remarks: 'Good composition' },
-      { Name: 'Punam Wagh', 'Participant ID': `${eventPrefix}S${seasonNum}-1004`, Score: 91.5, Remarks: 'Nice colors' },
-      { Name: 'Shraddha Ramteke', 'Participant ID': `${eventPrefix}S${seasonNum}-1005`, Score: 90.2, Remarks: 'Creative approach' }
+    const templateData = [
+      // Adult category (Top 5)
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-1001`, Name: 'Abhishek Kadu', Category: 'Adult', Rank: 1, Score: 95.5, Remarks: 'Excellent creativity' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-1002`, Name: 'Kartik Shambharkar', Category: 'Adult', Rank: 2, Score: 94.2, Remarks: 'Great technique' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-1003`, Name: 'Pratik Pandey', Category: 'Adult', Rank: 3, Score: 92.8, Remarks: 'Good composition' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-1004`, Name: 'Punam Wagh', Category: 'Adult', Rank: 4, Score: 91.5, Remarks: 'Nice colors' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-1005`, Name: 'Shraddha Ramteke', Category: 'Adult', Rank: 5, Score: 90.2, Remarks: 'Creative approach' },
+      
+      // Children category (Top 5)
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-2001`, Name: 'Gauri Dahake', Category: 'Children', Rank: 1, Score: 93.5, Remarks: 'Amazing for age' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-2002`, Name: 'Shital Parise', Category: 'Children', Rank: 2, Score: 92.1, Remarks: 'Very creative' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-2003`, Name: 'Chetan Urje', Category: 'Children', Rank: 3, Score: 90.8, Remarks: 'Good details' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-2004`, Name: 'Zoya Khan', Category: 'Children', Rank: 4, Score: 89.5, Remarks: 'Nice style' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-2005`, Name: 'Arju Shah', Category: 'Children', Rank: 5, Score: 88.2, Remarks: 'Good effort' },
+      
+      // Preschool category (Top 5)
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-3001`, Name: 'Rohit Bhise', Category: 'Preschool', Rank: 1, Score: 91.5, Remarks: 'Exceptional talent' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-3002`, Name: 'Pranita Singh', Category: 'Preschool', Rank: 2, Score: 90.1, Remarks: 'Great colors' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-3003`, Name: 'Yash Kadu', Category: 'Preschool', Rank: 3, Score: 88.8, Remarks: 'Nice work' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-3004`, Name: 'Rina Bhasme', Category: 'Preschool', Rank: 4, Score: 87.5, Remarks: 'Creative ideas' },
+      { 'Participant ID': `${eventPrefix}S${seasonNum}-3005`, Name: 'Dolly Panbase', Category: 'Preschool', Rank: 5, Score: 86.2, Remarks: 'Good attempt' },
+      
+      // Top 100 (showing first 10 as example)
+      ...Array.from({ length: 10 }, (_, i) => ({
+        'Participant ID': `${eventPrefix}S${seasonNum}-T${String(i + 1).padStart(3, '0')}`,
+        Name: i < 5 ? `Highlighted Artist ${i + 1}` : `Artist ${i + 1}`,
+        Category: 'Top100',
+        Rank: i + 1,
+        Score: 95 - (i * 0.5),
+        Remarks: i < 5 ? 'Top 20 Highlighted' : 'Top 100 Artist'
+      }))
     ];
-
-    const childrenData = [
-      { Name: 'Gauri Dahake', 'Participant ID': `${eventPrefix}S${seasonNum}-2001`, Score: 93.5, Remarks: 'Amazing for age' },
-      { Name: 'Shital Parise', 'Participant ID': `${eventPrefix}S${seasonNum}-2002`, Score: 92.1, Remarks: 'Very creative' },
-      { Name: 'Chetan Urje', 'Participant ID': `${eventPrefix}S${seasonNum}-2003`, Score: 90.8, Remarks: 'Good details' },
-      { Name: 'Zoya Khan', 'Participant ID': `${eventPrefix}S${seasonNum}-2004`, Score: 89.5, Remarks: 'Nice style' },
-      { Name: 'Arju Shah', 'Participant ID': `${eventPrefix}S${seasonNum}-2005`, Score: 88.2, Remarks: 'Good effort' }
-    ];
-
-    const preschoolData = [
-      { Name: 'Rohit Bhise', 'Participant ID': `${eventPrefix}S${seasonNum}-3001`, Score: 91.5, Remarks: 'Exceptional talent' },
-      { Name: 'Pranita Singh', 'Participant ID': `${eventPrefix}S${seasonNum}-3002`, Score: 90.1, Remarks: 'Great colors' },
-      { Name: 'Yash Kadu', 'Participant ID': `${eventPrefix}S${seasonNum}-3003`, Score: 88.8, Remarks: 'Nice work' },
-      { Name: 'Rina Bhasme', 'Participant ID': `${eventPrefix}S${seasonNum}-3004`, Score: 87.5, Remarks: 'Creative ideas' },
-      { Name: 'Dolly Panbase', 'Participant ID': `${eventPrefix}S${seasonNum}-3005`, Score: 86.2, Remarks: 'Good attempt' }
-    ];
-
-    const top100Data = Array.from({ length: 100 }, (_, i) => ({
-      Name: i < 20 ? `Highlighted Artist ${i + 1}` : `Artist ${i + 1}`,
-      'Participant ID': `${eventPrefix}S${seasonNum}-T${String(i + 1).padStart(3, '0')}`,
-      Score: 95 - (i * 0.5),
-      Remarks: i < 20 ? 'Top 20 Highlighted' : 'Top 100 Artist'
-    }));
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(adultData), 'Adult');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(childrenData), 'Children');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(preschoolData), 'Preschool');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(top100Data), 'Top100');
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 18 }, // Participant ID
+      { wch: 20 }, // Name
+      { wch: 12 }, // Category
+      { wch: 8 },  // Rank
+      { wch: 10 }, // Score
+      { wch: 25 }  // Remarks
+    ];
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Results');
 
     XLSX.writeFile(wb, `${selectedEvent}-${selectedSeason.replace(' ', '-')}-results-template.xlsx`);
-    toast.success('Template downloaded successfully!');
+    toast.success('NEW FORMAT: Single sheet template with Category & Rank columns downloaded!');
   };
 
   const publishResults = () => {
@@ -283,12 +295,15 @@ const ResultUpload: React.FC<ResultUploadProps> = ({ eventTypes, eventNames, par
     <div className="space-y-6">
       {/* Upload Section */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Excel Results Upload
-          </CardTitle>
-        </CardHeader>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Excel Results Upload (New Format: Single Sheet)
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              Upload results using the new single-sheet format with Category and Rank columns
+            </p>
+          </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

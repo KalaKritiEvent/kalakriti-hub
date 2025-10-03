@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ResultUpload from '@/components/admin/ResultUpload';
+import QueriesManagement from '@/components/admin/QueriesManagement';
+import * as XLSX from 'xlsx';
 
 interface Participant {
   participantId: string;
@@ -55,6 +57,7 @@ const AdminDashboard = () => {
   const [results, setResults] = useState<Result[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState('all');
+  const [selectedSeason, setSelectedSeason] = useState('all');
   const [newResult, setNewResult] = useState({
     participantId: '',
     eventType: '',
@@ -95,13 +98,48 @@ const AdminDashboard = () => {
     navigate('/admin');
   };
 
+  const getAvailableSeasons = () => {
+    const seasons = ['all', '2024', '2025'];
+    return seasons;
+  };
+
   const filteredParticipants = participants.filter(participant => {
     const matchesSearch = participant.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          participant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          participant.participantId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesEvent = selectedEvent === 'all' || participant.eventType === selectedEvent;
-    return matchesSearch && matchesEvent;
+    const matchesSeason = selectedSeason === 'all' || participant.registrationDate.includes(selectedSeason);
+    return matchesSearch && matchesEvent && matchesSeason;
   });
+
+  const exportToExcel = () => {
+    if (filteredParticipants.length === 0) {
+      toast.error('No participants to export');
+      return;
+    }
+
+    const exportData = filteredParticipants.map(p => ({
+      'Participant ID': p.participantId,
+      'Full Name': p.fullName,
+      'Email': p.email,
+      'Phone': p.phone,
+      'City': p.city,
+      'State': p.state,
+      'Competition': eventNames[p.eventType as keyof typeof eventNames],
+      'Registration Date': new Date(p.registrationDate).toLocaleDateString(),
+      'Status': p.status,
+      'Payment Status': p.paymentStatus,
+      'Artwork File': p.submissionFileName || 'Not submitted'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Participants');
+    
+    const filename = `participants_${selectedEvent}_${selectedSeason}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    toast.success('Excel file downloaded successfully!');
+  };
 
   const getEventStats = () => {
     const stats = eventTypes.map(eventType => ({
@@ -187,7 +225,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="participants">Participants</TabsTrigger>
             <TabsTrigger value="results">Results</TabsTrigger>
-            <TabsTrigger value="certificates">Certificates</TabsTrigger>
+            <TabsTrigger value="queries">Queries</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -277,28 +315,53 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Participant Management</CardTitle>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search participants..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search participants..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <select
+                      value={selectedEvent}
+                      onChange={(e) => setSelectedEvent(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-md bg-white"
+                    >
+                      <option value="all">All Competitions</option>
+                      {eventTypes.map(type => (
+                        <option key={type} value={type}>
+                          {eventNames[type as keyof typeof eventNames]}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={selectedSeason}
+                      onChange={(e) => setSelectedSeason(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-md bg-white"
+                    >
+                      <option value="all">All Seasons</option>
+                      {getAvailableSeasons().filter(s => s !== 'all').map(season => (
+                        <option key={season} value={season}>
+                          Season {season}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      onClick={exportToExcel}
+                      variant="outline"
+                      className="whitespace-nowrap"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Excel
+                    </Button>
                   </div>
-                  <select
-                    value={selectedEvent}
-                    onChange={(e) => setSelectedEvent(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="all">All Competitions</option>
-                    {eventTypes.map(type => (
-                      <option key={type} value={type}>
-                        {eventNames[type as keyof typeof eventNames]}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="text-sm text-gray-600">
+                    Showing {filteredParticipants.length} of {participants.length} participants
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -398,24 +461,8 @@ const AdminDashboard = () => {
             />
           </TabsContent>
 
-          <TabsContent value="certificates" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Certificate Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Award className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Certificate Generator</h3>
-                  <p className="text-gray-500 mb-6">
-                    Generate and manage certificates for competition winners
-                  </p>
-                  <Button variant="outline">
-                    Coming Soon
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="queries" className="space-y-6">
+            <QueriesManagement />
           </TabsContent>
         </Tabs>
       </div>

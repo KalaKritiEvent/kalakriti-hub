@@ -17,6 +17,7 @@ import {
   Award,
   Clock
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const UserDashboard = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -208,15 +209,37 @@ const UserDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-center gap-2"
+                    onClick={() => {
+                      // Check if user has results
+                      const results = JSON.parse(localStorage.getItem('kalakriti-event-results') || '[]');
+                      const userResult = results.find((r: any) => {
+                        return Object.values(r.topPositions).some((category: any) => 
+                          category.some((entry: any) => entry.participantId === userData.contestantId)
+                        ) || r.top100.some((entry: any) => entry.participantId === userData.contestantId);
+                      });
+                      
+                      if (!userResult) {
+                        toast.error('Certificate not available yet. Results pending.');
+                      } else {
+                        toast.success('Certificate download feature coming soon!');
+                      }
+                    }}
+                  >
                     <Download className="h-6 w-6" />
                     <span>Download Certificate</span>
-                    <span className="text-xs text-gray-500">Available after results</span>
+                    <span className="text-xs text-gray-500">Check eligibility</span>
                   </Button>
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-center gap-2"
+                    onClick={() => window.location.href = '/results'}
+                  >
                     <Award className="h-6 w-6" />
                     <span>View Results</span>
-                    <span className="text-xs text-gray-500">Coming soon</span>
+                    <span className="text-xs text-gray-500">Browse all results</span>
                   </Button>
                 </div>
               </CardContent>
