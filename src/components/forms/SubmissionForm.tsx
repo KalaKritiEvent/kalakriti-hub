@@ -178,6 +178,8 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
     age: '',
     email: '',
     phoneNumber: '',
+    password: '',
+    confirmPassword: '',
     address: '',
     city: '',
     state: '',
@@ -191,7 +193,20 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
     const user = localStorage.getItem('kalakriti-user');
     const submission = localStorage.getItem('kalakriti-submission');
     
-    if (submission) {
+    if (user) {
+      const userData = JSON.parse(user);
+      setFormData(prev => ({
+        ...prev,
+        firstName: userData.fullName?.split(' ')[0] || '',
+        lastName: userData.fullName?.split(' ').slice(1).join(' ') || '',
+        email: userData.email || '',
+        phoneNumber: userData.phoneNumber || '',
+        address: userData.address || '',
+        city: userData.city || '',
+        state: userData.state || '',
+        pincode: userData.pincode || ''
+      }));
+    } else if (submission) {
       const submissionData = JSON.parse(submission);
       setFormData({
         firstName: submissionData.firstName || '',
@@ -199,6 +214,8 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
         age: submissionData.age || '',
         email: submissionData.email || '',
         phoneNumber: submissionData.phoneNumber || '',
+        password: '',
+        confirmPassword: '',
         address: submissionData.address || '',
         city: submissionData.city || '',
         state: submissionData.state || '',
@@ -221,10 +238,31 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
   };
 
   const validateForm = () => {
+    // Check if user is logged in
+    const isLoggedIn = !!localStorage.getItem('kalakriti-token');
+    
     // Basic validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phoneNumber) {
       toast.error('Please fill in all required fields');
       return false;
+    }
+    
+    // Password validation only for new users (not logged in)
+    if (!isLoggedIn) {
+      if (!formData.password || !formData.confirmPassword) {
+        toast.error('Please create a password for your account');
+        return false;
+      }
+      
+      if (formData.password.length < 8) {
+        toast.error('Password must be at least 8 characters long');
+        return false;
+      }
+      
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('Passwords do not match');
+        return false;
+      }
     }
     
     // Email validation
@@ -258,32 +296,72 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Create FormData object
-      const submissionFormData = new FormData();
+      const isLoggedIn = !!localStorage.getItem('kalakriti-token');
       
-      // Add form fields
-      Object.entries(formData).forEach(([key, value]) => {
-        submissionFormData.append(key, value);
-      });
+      // If not logged in, create account first
+      if (!isLoggedIn) {
+        const existingUsers = JSON.parse(localStorage.getItem('kalakriti-users') || '[]');
+        
+        // Check if email already exists
+        if (existingUsers.some((u: any) => u.email === formData.email)) {
+          toast.error('An account with this email already exists. Please log in.');
+          setIsSubmitting(false);
+          return;
+        }
+        
+        // Create new user account
+        const newUser = {
+          fullName: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          age: formData.age,
+          signedUpAt: new Date().toISOString(),
+          hasParticipated: true
+        };
+        
+        existingUsers.push(newUser);
+        localStorage.setItem('kalakriti-users', JSON.stringify(existingUsers));
+        localStorage.setItem('kalakriti-token', 'auth-token-' + Date.now());
+        localStorage.setItem('kalakriti-user', JSON.stringify(newUser));
+      }
       
-      // Add files
-      files.forEach((file, index) => {
-        submissionFormData.append(`artwork${index + 1}`, file);
-      });
+      // Generate contestant ID
+      const eventCode = eventType.charAt(0).toUpperCase();
+      const year = new Date().getFullYear().toString().slice(-2);
+      const randomNum = Math.floor(10000 + Math.random() * 90000);
+      const contestantId = `S1${eventCode}${year}${randomNum}`;
       
-      // Add payment and event details
-      submissionFormData.append('eventType', eventType);
-      submissionFormData.append('numberOfArtworks', numberOfArtworks.toString());
-      submissionFormData.append('paymentId', paymentId);
-      submissionFormData.append('orderId', orderId);
+      // Create submission data
+      const submissionData = {
+        ...formData,
+        contestantId,
+        eventType,
+        numberOfArtworks,
+        paymentId,
+        orderId,
+        submittedAt: new Date().toISOString(),
+        files: files.map(f => f.name)
+      };
       
-      // Submit form
-      const response = await api.submissions.create(submissionFormData);
+      // Store submission
+      const submissions = JSON.parse(localStorage.getItem('kalakriti-submissions') || '[]');
+      submissions.push(submissionData);
+      localStorage.setItem('kalakriti-submissions', JSON.stringify(submissions));
+      
+      // Update user data with contestant ID
+      const currentUser = JSON.parse(localStorage.getItem('kalakriti-user') || '{}');
+      currentUser.contestantId = contestantId;
+      currentUser.hasParticipated = true;
+      localStorage.setItem('kalakriti-user', JSON.stringify(currentUser));
       
       toast.success('Your submission has been received successfully!');
       
-      // Navigate to success page with contestant ID
-      navigate(`/submission-success?id=${response.contestantId}`);
+      // Navigate to dashboard
+      navigate('/dashboard');
     } catch (error) {
       console.error('Submission error:', error);
       toast.error('There was an error submitting your form. Please try again.');
@@ -376,6 +454,39 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
               />
             </div>
           </div>
+
+          {!localStorage.getItem('kalakriti-token') && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div>
+                <Label htmlFor="password">Create Password *</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Minimum 8 characters"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Re-enter your password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="col-span-full text-sm text-blue-800">
+                <p className="font-medium">Create your account automatically!</p>
+                <p className="text-xs mt-1">By submitting, you'll get a dashboard to track your submissions and download certificates.</p>
+              </div>
+            </div>
+          )}
 
           <div className="mb-6">
             <Label htmlFor="address">Address *</Label>
